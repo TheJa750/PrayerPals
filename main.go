@@ -42,6 +42,11 @@ func main() {
 
 	mux.Handle("/app/", fileHandler)
 
+	//Admin Handlers
+	mux.HandleFunc("POST /admin/reset", cfg.ResetDatabase)
+	mux.HandleFunc("POST /admin/reset/users", cfg.ResetUsersOnly)
+	mux.HandleFunc("POST /admin/reset/groups", cfg.ResetGroupsOnly)
+
 	// API Handlers
 	mux.HandleFunc("GET /api/health", handlers.HealthCheck)
 	mux.HandleFunc("POST /api/users", cfg.CreateUserHandler)
