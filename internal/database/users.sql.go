@@ -48,29 +48,21 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (CreateU
 }
 
 const getUserByID = `-- name: GetUserByID :one
-SELECT id, username, email, created_at, updated_at, is_active
+SELECT id, username, email, created_at, updated_at, hashed_password, is_active
 FROM users
 WHERE id = $1
 `
 
-type GetUserByIDRow struct {
-	ID        uuid.UUID
-	Username  string
-	Email     string
-	CreatedAt sql.NullTime
-	UpdatedAt sql.NullTime
-	IsActive  sql.NullBool
-}
-
-func (q *Queries) GetUserByID(ctx context.Context, id uuid.UUID) (GetUserByIDRow, error) {
+func (q *Queries) GetUserByID(ctx context.Context, id uuid.UUID) (User, error) {
 	row := q.db.QueryRowContext(ctx, getUserByID, id)
-	var i GetUserByIDRow
+	var i User
 	err := row.Scan(
 		&i.ID,
 		&i.Username,
 		&i.Email,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.HashedPassword,
 		&i.IsActive,
 	)
 	return i, err

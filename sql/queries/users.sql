@@ -4,7 +4,7 @@ VALUES ($1, $2, $3)
 RETURNING id, username, email, created_at, updated_at, is_active;
 
 -- name: GetUserByID :one
-SELECT id, username, email, created_at, updated_at, is_active
+SELECT *
 FROM users
 WHERE id = $1;
 

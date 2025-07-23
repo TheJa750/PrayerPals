@@ -1,17 +1,29 @@
 package main
 
 import (
+	"database/sql"
 	"log"
 	"net/http"
+	"os"
 	"time"
 
+	"github.com/TheJa750/PrayerPals/internal/database"
 	"github.com/TheJa750/PrayerPals/internal/handlers"
 	"github.com/TheJa750/PrayerPals/internal/middleware"
+	"github.com/joho/godotenv"
 
 	_ "github.com/lib/pq" // Import the PostgreSQL driver
 )
 
 func main() {
+	godotenv.Load()
+	dbURL := os.Getenv("DB_URL")
+
+	db, err := sql.Open("postgres", dbURL)
+	if err != nil {
+		log.Fatalf("Error connecting to the database: %v", err)
+	}
+
 	mux := http.NewServeMux()
 
 	svr := http.Server{
@@ -21,20 +33,19 @@ func main() {
 	}
 	log.Println("Starting server on :8080")
 
+	cfg := handlers.APIConfig{
+		DBQueries: database.New(db),
+		JWTSecret: os.Getenv("JWT_SECRET"),
+	}
+
 	fileHandler := http.StripPrefix("/app/", http.FileServer(http.Dir("./internal/assets/")))
 
 	mux.Handle("/app/", fileHandler)
-	mux.HandleFunc("GET /health", handlers.HealthCheck)
+
+	// API Handlers
+	mux.HandleFunc("GET /api/health", handlers.HealthCheck)
+	mux.HandleFunc("POST /api/users", cfg.CreateUserHandler)
+	mux.HandleFunc("POST /api/login", cfg.LoginUser)
 
 	log.Fatal(svr.ListenAndServe())
 }
-
-/*
-	godotenv.Load()
-	dbURL := os.Getenv("DB_URL")
-
-	db, err := sql.Open("postgres", dbURL)
-	if err != nil {
-		log.Fatalf("Error connecting to the database: %v", err)
-	}
-*/
