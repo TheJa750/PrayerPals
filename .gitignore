@@ -30,3 +30,7 @@ go.work.sum
 # Editor/IDE
 # .idea/
 # .vscode/
+
+# Migration Scripts
+down_migrate.sh
+up_migrate.sh
