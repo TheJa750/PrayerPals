@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/TheJa750/PrayerPals/internal/handlers"
+
 	_ "github.com/lib/pq" // Import the PostgreSQL driver
 )
 
@@ -28,7 +30,10 @@ func main() {
 	}
 	log.Println("Starting server on :8080")
 
-	mux.Handle("/", http.FileServer(http.Dir(".")))
+	fileHandler := http.StripPrefix("/app/", http.FileServer(http.Dir(".")))
+
+	mux.Handle("/app/", fileHandler)
+	mux.HandleFunc("/health", handlers.HealthCheck)
 
 	log.Fatal(svr.ListenAndServe())
 }
