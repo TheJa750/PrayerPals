@@ -54,6 +54,16 @@ func (q *Queries) CreateGroup(ctx context.Context, arg CreateGroupParams) (Group
 	return i, err
 }
 
+const deleteGroup = `-- name: DeleteGroup :exec
+DELETE FROM groups
+WHERE id = $1
+`
+
+func (q *Queries) DeleteGroup(ctx context.Context, id uuid.UUID) error {
+	_, err := q.db.ExecContext(ctx, deleteGroup, id)
+	return err
+}
+
 const getGroupByID = `-- name: GetGroupByID :one
 SELECT id, name, description, created_at, updated_at, owner_id
 FROM groups
@@ -74,6 +84,35 @@ func (q *Queries) GetGroupByID(ctx context.Context, id uuid.UUID) (Group, error)
 	return i, err
 }
 
+const getGroupMembersIDs = `-- name: GetGroupMembersIDs :many
+SELECT user_id
+FROM users_groups
+WHERE group_id = $1
+`
+
+func (q *Queries) GetGroupMembersIDs(ctx context.Context, groupID uuid.UUID) ([]uuid.UUID, error) {
+	rows, err := q.db.QueryContext(ctx, getGroupMembersIDs, groupID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []uuid.UUID
+	for rows.Next() {
+		var user_id uuid.UUID
+		if err := rows.Scan(&user_id); err != nil {
+			return nil, err
+		}
+		items = append(items, user_id)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const removeUserFromGroup = `-- name: RemoveUserFromGroup :exec
 DELETE FROM users_groups
 WHERE user_id = $1 AND group_id = $2
@@ -86,5 +125,14 @@ type RemoveUserFromGroupParams struct {
 
 func (q *Queries) RemoveUserFromGroup(ctx context.Context, arg RemoveUserFromGroupParams) error {
 	_, err := q.db.ExecContext(ctx, removeUserFromGroup, arg.UserID, arg.GroupID)
+	return err
+}
+
+const resetGroups = `-- name: ResetGroups :exec
+TRUNCATE TABLE groups CASCADE
+`
+
+func (q *Queries) ResetGroups(ctx context.Context) error {
+	_, err := q.db.ExecContext(ctx, resetGroups)
 	return err
 }

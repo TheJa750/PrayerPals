@@ -68,40 +68,25 @@ func (q *Queries) GetUserByID(ctx context.Context, id uuid.UUID) (User, error) {
 	return i, err
 }
 
-const getUserGroups = `-- name: GetUserGroups :many
-SELECT g.id, g.name, g.description, g.created_at, g.updated_at
-FROM groups g
-JOIN users_groups ug ON g.id = ug.group_id
-WHERE ug.user_id = $1
+const getUserGroupIDs = `-- name: GetUserGroupIDs :many
+SELECT group_id
+FROM users_groups
+WHERE user_id = $1
 `
 
-type GetUserGroupsRow struct {
-	ID          uuid.UUID
-	Name        string
-	Description sql.NullString
-	CreatedAt   sql.NullTime
-	UpdatedAt   sql.NullTime
-}
-
-func (q *Queries) GetUserGroups(ctx context.Context, userID uuid.UUID) ([]GetUserGroupsRow, error) {
-	rows, err := q.db.QueryContext(ctx, getUserGroups, userID)
+func (q *Queries) GetUserGroupIDs(ctx context.Context, userID uuid.UUID) ([]uuid.UUID, error) {
+	rows, err := q.db.QueryContext(ctx, getUserGroupIDs, userID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []GetUserGroupsRow
+	var items []uuid.UUID
 	for rows.Next() {
-		var i GetUserGroupsRow
-		if err := rows.Scan(
-			&i.ID,
-			&i.Name,
-			&i.Description,
-			&i.CreatedAt,
-			&i.UpdatedAt,
-		); err != nil {
+		var group_id uuid.UUID
+		if err := rows.Scan(&group_id); err != nil {
 			return nil, err
 		}
-		items = append(items, i)
+		items = append(items, group_id)
 	}
 	if err := rows.Close(); err != nil {
 		return nil, err
@@ -123,4 +108,13 @@ func (q *Queries) GetUserIDByEmail(ctx context.Context, email string) (uuid.UUID
 	var id uuid.UUID
 	err := row.Scan(&id)
 	return id, err
+}
+
+const resetUsers = `-- name: ResetUsers :exec
+TRUNCATE TABLE users CASCADE
+`
+
+func (q *Queries) ResetUsers(ctx context.Context) error {
+	_, err := q.db.ExecContext(ctx, resetUsers)
+	return err
 }

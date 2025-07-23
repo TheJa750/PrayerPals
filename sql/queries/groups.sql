@@ -16,3 +16,15 @@ ON CONFLICT DO NOTHING;
 -- name: RemoveUserFromGroup :exec
 DELETE FROM users_groups
 WHERE user_id = $1 AND group_id = $2;
+
+-- name: DeleteGroup :exec
+DELETE FROM groups
+WHERE id = $1;
+
+-- name: ResetGroups :exec
+TRUNCATE TABLE groups CASCADE;
+
+-- name: GetGroupMembersIDs :many
+SELECT user_id
+FROM users_groups
+WHERE group_id = $1;

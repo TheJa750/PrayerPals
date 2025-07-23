@@ -13,8 +13,10 @@ SELECT id
 FROM users
 WHERE email = $1;
 
--- name: GetUserGroups :many
-SELECT g.id, g.name, g.description, g.created_at, g.updated_at
-FROM groups g
-JOIN users_groups ug ON g.id = ug.group_id
-WHERE ug.user_id = $1;
+-- name: GetUserGroupIDs :many
+SELECT group_id
+FROM users_groups
+WHERE user_id = $1;
+
+-- name: ResetUsers :exec
+TRUNCATE TABLE users CASCADE;
