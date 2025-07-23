@@ -31,6 +31,5 @@ go.work.sum
 # .idea/
 # .vscode/
 
-# Migration Scripts
-down_migrate.sh
-up_migrate.sh
+# Dev Scripts
+scripts
