@@ -21,10 +21,10 @@ func main() {
 	}
 	log.Println("Starting server on :8080")
 
-	fileHandler := http.StripPrefix("/app/", http.FileServer(http.Dir(".")))
+	fileHandler := http.StripPrefix("/app/", http.FileServer(http.Dir("./internal/assets/")))
 
 	mux.Handle("/app/", fileHandler)
-	mux.HandleFunc("/health", handlers.HealthCheck)
+	mux.HandleFunc("GET /health", handlers.HealthCheck)
 
 	log.Fatal(svr.ListenAndServe())
 }
