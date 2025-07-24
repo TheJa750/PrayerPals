@@ -13,18 +13,19 @@ import (
 )
 
 const addUserToGroup = `-- name: AddUserToGroup :exec
-INSERT INTO users_groups (user_id, group_id)
-VALUES ($1, $2)
+INSERT INTO users_groups (user_id, group_id, role)
+VALUES ($1, $2, $3)
 ON CONFLICT DO NOTHING
 `
 
 type AddUserToGroupParams struct {
 	UserID  uuid.UUID
 	GroupID uuid.UUID
+	Role    string
 }
 
 func (q *Queries) AddUserToGroup(ctx context.Context, arg AddUserToGroupParams) error {
-	_, err := q.db.ExecContext(ctx, addUserToGroup, arg.UserID, arg.GroupID)
+	_, err := q.db.ExecContext(ctx, addUserToGroup, arg.UserID, arg.GroupID, arg.Role)
 	return err
 }
 

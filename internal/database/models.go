@@ -53,4 +53,5 @@ type User struct {
 type UsersGroup struct {
 	UserID  uuid.UUID
 	GroupID uuid.UUID
+	Role    string
 }

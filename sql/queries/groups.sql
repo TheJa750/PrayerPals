@@ -9,8 +9,8 @@ FROM groups
 WHERE id = $1;
 
 -- name: AddUserToGroup :exec
-INSERT INTO users_groups (user_id, group_id)
-VALUES ($1, $2)
+INSERT INTO users_groups (user_id, group_id, role)
+VALUES ($1, $2, $3)
 ON CONFLICT DO NOTHING;
 
 -- name: RemoveUserFromGroup :exec
