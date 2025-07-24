@@ -39,6 +39,7 @@ func (q *Queries) CreateUserToken(ctx context.Context, arg CreateUserTokenParams
 const getUserByToken = `-- name: GetUserByToken :one
 SELECT token, user_id, created_at, updated_at, expires_at, revoked_at FROM refresh_tokens
 WHERE token = $1
+AND revoked_at IS NULL
 `
 
 func (q *Queries) GetUserByToken(ctx context.Context, token string) (RefreshToken, error) {

@@ -28,3 +28,8 @@ TRUNCATE TABLE groups CASCADE;
 SELECT user_id
 FROM users_groups
 WHERE group_id = $1;
+
+-- name: GetGroupsForUser :many
+SELECT group_id
+FROM users_groups
+WHERE user_id = $1;

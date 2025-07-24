@@ -114,6 +114,35 @@ func (q *Queries) GetGroupMembersIDs(ctx context.Context, groupID uuid.UUID) ([]
 	return items, nil
 }
 
+const getGroupsForUser = `-- name: GetGroupsForUser :many
+SELECT group_id
+FROM users_groups
+WHERE user_id = $1
+`
+
+func (q *Queries) GetGroupsForUser(ctx context.Context, userID uuid.UUID) ([]uuid.UUID, error) {
+	rows, err := q.db.QueryContext(ctx, getGroupsForUser, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []uuid.UUID
+	for rows.Next() {
+		var group_id uuid.UUID
+		if err := rows.Scan(&group_id); err != nil {
+			return nil, err
+		}
+		items = append(items, group_id)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const removeUserFromGroup = `-- name: RemoveUserFromGroup :exec
 DELETE FROM users_groups
 WHERE user_id = $1 AND group_id = $2
