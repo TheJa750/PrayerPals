@@ -3,10 +3,12 @@ package handlers
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"time"
 
 	"github.com/TheJa750/PrayerPals/internal/auth"
 	"github.com/TheJa750/PrayerPals/internal/database"
+	"github.com/google/uuid"
 )
 
 func (a *APIConfig) issueTokens(user database.User, jwtSecret string, activeTime time.Duration, ctx context.Context) (string, string, error) {
@@ -29,4 +31,18 @@ func (a *APIConfig) issueTokens(user database.User, jwtSecret string, activeTime
 	}
 
 	return accessToken, refreshToken, nil
+}
+
+func (a *APIConfig) getUserIDFromToken(r *http.Request) (uuid.UUID, error) {
+	tokenString, err := auth.GetBearerToken(r.Header)
+	if err != nil {
+		return uuid.Nil, fmt.Errorf("getUserIDFromToken: %w", err)
+	}
+
+	userID, err := auth.ValidateJWT(tokenString, a.JWTSecret)
+	if err != nil {
+		return uuid.Nil, fmt.Errorf("getUserIDFromToken: %w", err)
+	}
+
+	return userID, nil
 }
