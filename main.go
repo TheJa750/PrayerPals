@@ -51,6 +51,7 @@ func main() {
 	mux.HandleFunc("GET /api/health", handlers.HealthCheck)
 	mux.HandleFunc("POST /api/users", cfg.CreateUserHandler)
 	mux.HandleFunc("POST /api/login", cfg.LoginUser)
+	mux.HandleFunc("POST /api/groups", cfg.CreateGroup)
 
 	log.Fatal(svr.ListenAndServe())
 }

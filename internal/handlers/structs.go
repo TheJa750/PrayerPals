@@ -31,6 +31,18 @@ type UserLoggedIn struct {
 	RefreshToken string    `json:"refresh_token"`
 }
 
+type GroupRequest struct {
+	Name        string `json:"name"`
+	Description string `json:"description"`
+}
+
+type Group struct {
+	ID          uuid.UUID `json:"id"`
+	Name        string    `json:"name"`
+	Description string    `json:"description"`
+	OwnerID     uuid.UUID `json:"owner_id"`
+}
+
 func ParseJSON[T any](r *http.Request) (T, error) {
 	var data T
 
