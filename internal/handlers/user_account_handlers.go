@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"encoding/json"
 	"log"
 	"net/http"
 	"time"
@@ -12,13 +11,11 @@ import (
 
 func (a *APIConfig) CreateUserHandler(w http.ResponseWriter, r *http.Request) {
 	// Handler logic for creating a user
-	var userReq UserRequest
-	decoder := json.NewDecoder(r.Body)
-	if err := decoder.Decode(&userReq); err != nil {
+	userReq, err := ParseJSON[UserRequest](r)
+	if err != nil {
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
 	}
-	defer r.Body.Close()
 
 	if userReq.Username == "" || userReq.Email == "" || userReq.Password == "" {
 		http.Error(w, "Missing required fields", http.StatusBadRequest)
@@ -46,13 +43,11 @@ func (a *APIConfig) CreateUserHandler(w http.ResponseWriter, r *http.Request) {
 
 func (a *APIConfig) LoginUser(w http.ResponseWriter, r *http.Request) {
 	// Handler logic for user login
-	var loginReq UserRequest
-	decoder := json.NewDecoder(r.Body)
-	if err := decoder.Decode(&loginReq); err != nil {
+	loginReq, err := ParseJSON[UserRequest](r)
+	if err != nil {
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
 	}
-	defer r.Body.Close()
 
 	if loginReq.Email == "" || loginReq.Password == "" {
 		http.Error(w, "Missing required fields", http.StatusBadRequest)
@@ -60,16 +55,9 @@ func (a *APIConfig) LoginUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Retrieve user by email
-	id, err := a.DBQueries.GetUserIDByEmail(r.Context(), loginReq.Email)
+	userData, err := a.DBQueries.GetUserIDByEmail(r.Context(), loginReq.Email)
 	if err != nil {
 		http.Error(w, "User not found", http.StatusNotFound)
-		return
-	}
-
-	//Get user information from id
-	userData, err := a.DBQueries.GetUserByID(r.Context(), id)
-	if err != nil {
-		http.Error(w, "Error retrieving user data", http.StatusInternalServerError)
 		return
 	}
 
@@ -80,43 +68,26 @@ func (a *APIConfig) LoginUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	access_token, err := auth.MakeJWT(userData.ID, a.JWTSecret, 1800*time.Second)
+	// Issue tokens
+	accessToken, refreshToken, err := a.issueTokens(userData, a.JWTSecret, 1800*time.Second, r.Context())
 	if err != nil {
-		log.Printf("Error creating JWT: %v", err)
-		http.Error(w, "Error creating access token", http.StatusInternalServerError)
-		return
-	}
-
-	rtString, err := auth.MakeRefreshToken()
-	if err != nil {
-		log.Printf("Error creating refresh token: %v", err)
-		http.Error(w, "Error creating refresh token", http.StatusInternalServerError)
-		return
-	}
-
-	_, err = a.DBQueries.CreateUserToken(r.Context(), database.CreateUserTokenParams{
-		UserID: userData.ID,
-		Token:  rtString,
-	})
-	if err != nil {
-		log.Printf("Error saving refresh token: %v", err)
-		http.Error(w, "Error saving refresh token", http.StatusInternalServerError)
+		log.Printf("Error issuing tokens for user %s: %v", userData.Username, err)
+		http.Error(w, "Error issuing tokens", http.StatusInternalServerError)
 		return
 	}
 
 	jsonUser := UserLoggedIn{
 		ID:           userData.ID,
 		Username:     userData.Username,
-		AccessToken:  access_token,
-		RefreshToken: rtString,
+		AccessToken:  accessToken,
+		RefreshToken: refreshToken,
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	if err := json.NewEncoder(w).Encode(jsonUser); err != nil {
-		log.Printf("Error encoding response: %v", err)
-		http.Error(w, "Error encoding response", http.StatusInternalServerError)
+	err = CreateJSONResponse(jsonUser, w, http.StatusOK)
+	if err != nil {
+		log.Printf("Error creating JSON response: %v", err)
 		return
 	}
+
 	log.Printf("User %s logged in successfully", userData.Username)
 }

@@ -1,6 +1,10 @@
 package handlers
 
 import (
+	"encoding/json"
+	"errors"
+	"net/http"
+
 	"github.com/TheJa750/PrayerPals/internal/database"
 	"github.com/google/uuid"
 )
@@ -25,4 +29,30 @@ type UserLoggedIn struct {
 	Username     string    `json:"username"`
 	AccessToken  string    `json:"access_token"`
 	RefreshToken string    `json:"refresh_token"`
+}
+
+func ParseJSON[T any](r *http.Request) (T, error) {
+	var data T
+
+	if r.Body == nil {
+		return data, errors.New("request body is empty")
+	}
+	defer r.Body.Close()
+
+	decoder := json.NewDecoder(r.Body)
+	if err := decoder.Decode(&data); err != nil {
+		return data, errors.New("invalid request body")
+	}
+
+	return data, nil
+}
+
+func CreateJSONResponse[T any](data T, w http.ResponseWriter, statusCode int) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(statusCode)
+	if err := json.NewEncoder(w).Encode(data); err != nil {
+		http.Error(w, "Error encoding response", http.StatusInternalServerError)
+		return err
+	}
+	return nil
 }
