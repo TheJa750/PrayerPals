@@ -2,9 +2,40 @@
 
 A simple web app for creating groups to post prayer requests.
 
-## Current To-do
+## Current To-do/Roadmap
 
-- Add endpoints and handlers for creating groups
-- Add endpoints and handlers for joining groups
-- Add endpoints and handlers for creating posts for specific groups
+- [x] Get functional server base
+- [ ] **Build an API**
+  - [x] Add endpoint and handler for checking server health
+  - [x] Add endpoint and handler for creating user
+    - [x] Add auth package for password hashing
+  - [x] Add endpoint and handler for logging in
+    - [x] Add token logic to auth package
+  - [x] Add endpoint and handler for creating groups
+  - [ ] Add endpoints and handlers for joining groups
+  - [ ] Add endpoints and handlers for creating posts for specific groups
+  - [ ] Add ability for group owners/admins to assign roles to users
+  - [ ] Add ability for group owners/admins to delete posts
+  - [ ] Add ability for group owners/admins to delete groups
+  - [ ] Add ability for users to see groups they belong to
+  - [ ] Add ability for users to leave groups
+    - [ ] Add checks for leaving group as owner/admin
+    - [ ] Add checks for leaving group as last user
+  - [ ] Add ability to invite users to group
+- [ ] **Build a UI**
+  - [ ] Set up project structure for static files (HTML, CSS, JS)
+  - [ ] Create a simple homepage with project branding/message
+  - [ ] Add user registration form
+    - [ ] Connect to backend
+  - [ ] Add login form
+    - [ ] Connect to backend
+    - [ ] Handle tokens
+  - [ ] Dashboard: show user’s groups and navigation
+  - [ ] Group pages: view group info and posts
+  - [ ] Create post form (use API endpoint)
+  - [ ] UI for joining/leaving groups
+  - [ ] Admin controls for owners (assign roles, delete posts/groups)
+  - [ ] Display server/API error messages and loading states
+  - [ ] Add styles for basic usability and mobile-responsiveness
+- [ ] **World Domination** *(if we get around to it)*
 - More coming soon...
