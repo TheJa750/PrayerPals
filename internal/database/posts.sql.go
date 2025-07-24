@@ -44,7 +44,7 @@ func (q *Queries) CreateComment(ctx context.Context, arg CreateCommentParams) (C
 const createPost = `-- name: CreatePost :one
 INSERT INTO posts (user_id, group_id, content)
 VALUES ($1, $2, $3)
-RETURNING id
+RETURNING id, user_id, group_id
 `
 
 type CreatePostParams struct {
@@ -53,11 +53,17 @@ type CreatePostParams struct {
 	Content string
 }
 
-func (q *Queries) CreatePost(ctx context.Context, arg CreatePostParams) (uuid.UUID, error) {
+type CreatePostRow struct {
+	ID      uuid.UUID
+	UserID  uuid.UUID
+	GroupID uuid.UUID
+}
+
+func (q *Queries) CreatePost(ctx context.Context, arg CreatePostParams) (CreatePostRow, error) {
 	row := q.db.QueryRowContext(ctx, createPost, arg.UserID, arg.GroupID, arg.Content)
-	var id uuid.UUID
-	err := row.Scan(&id)
-	return id, err
+	var i CreatePostRow
+	err := row.Scan(&i.ID, &i.UserID, &i.GroupID)
+	return i, err
 }
 
 const deletePost = `-- name: DeletePost :one

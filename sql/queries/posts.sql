@@ -1,7 +1,7 @@
 -- name: CreatePost :one
 INSERT INTO posts (user_id, group_id, content)
 VALUES ($1, $2, $3)
-RETURNING id;
+RETURNING id, user_id, group_id;
 
 -- name: CreateComment :one
 INSERT INTO posts (user_id, group_id, content, parent_post_id)
