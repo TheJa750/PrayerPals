@@ -9,7 +9,7 @@ FROM users
 WHERE id = $1;
 
 -- name: GetUserIDByEmail :one
-SELECT id
+SELECT *
 FROM users
 WHERE email = $1;
 

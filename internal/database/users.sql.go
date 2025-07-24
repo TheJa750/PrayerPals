@@ -98,16 +98,24 @@ func (q *Queries) GetUserGroupIDs(ctx context.Context, userID uuid.UUID) ([]uuid
 }
 
 const getUserIDByEmail = `-- name: GetUserIDByEmail :one
-SELECT id
+SELECT id, username, email, created_at, updated_at, hashed_password, is_active
 FROM users
 WHERE email = $1
 `
 
-func (q *Queries) GetUserIDByEmail(ctx context.Context, email string) (uuid.UUID, error) {
+func (q *Queries) GetUserIDByEmail(ctx context.Context, email string) (User, error) {
 	row := q.db.QueryRowContext(ctx, getUserIDByEmail, email)
-	var id uuid.UUID
-	err := row.Scan(&id)
-	return id, err
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Username,
+		&i.Email,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.HashedPassword,
+		&i.IsActive,
+	)
+	return i, err
 }
 
 const resetUsers = `-- name: ResetUsers :exec

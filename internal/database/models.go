@@ -20,6 +20,17 @@ type Group struct {
 	OwnerID     uuid.NullUUID
 }
 
+type Post struct {
+	ID           uuid.UUID
+	UserID       uuid.UUID
+	GroupID      uuid.UUID
+	Content      string
+	CreatedAt    sql.NullTime
+	UpdatedAt    sql.NullTime
+	ParentPostID uuid.NullUUID
+	IsDeleted    sql.NullBool
+}
+
 type RefreshToken struct {
 	Token     string
 	UserID    uuid.UUID
