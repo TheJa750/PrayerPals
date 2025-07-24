@@ -24,6 +24,12 @@ type UserRequest struct {
 	Password string `json:"password"`
 }
 
+type User struct {
+	ID       uuid.UUID `json:"id"`
+	Username string    `json:"username"`
+	Email    string    `json:"email"`
+}
+
 type UserLoggedIn struct {
 	ID           uuid.UUID `json:"id"`
 	Username     string    `json:"username"`

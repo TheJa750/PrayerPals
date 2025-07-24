@@ -9,7 +9,7 @@ import (
 	"github.com/google/uuid"
 )
 
-func (a *APIConfig) CreateGroup(w http.ResponseWriter, r *http.Request) {
+func (a *APIConfig) CreateGroupHandler(w http.ResponseWriter, r *http.Request) {
 	// Handler logic for creating a group
 	// Parse JSON request body
 	groupReq, err := ParseJSON[GroupRequest](r)

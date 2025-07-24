@@ -47,11 +47,18 @@ func main() {
 	mux.HandleFunc("POST /admin/reset/users", cfg.ResetUsersOnly)
 	mux.HandleFunc("POST /admin/reset/groups", cfg.ResetGroupsOnly)
 
-	// API Handlers
+	// Generic API Handlers
 	mux.HandleFunc("GET /api/health", handlers.HealthCheck)
+
+	// User Account Handlers
 	mux.HandleFunc("POST /api/users", cfg.CreateUserHandler)
-	mux.HandleFunc("POST /api/login", cfg.LoginUser)
-	mux.HandleFunc("POST /api/groups", cfg.CreateGroup)
+	mux.HandleFunc("POST /api/login", cfg.LoginUserHandler)
+
+	// User Functions Handlers
+	mux.HandleFunc("POST /api/groups/join", cfg.JoinGroupHandler) // Expecting query parameter ?group_id=UUID
+
+	// Group Handlers
+	mux.HandleFunc("POST /api/groups", cfg.CreateGroupHandler)
 
 	log.Fatal(svr.ListenAndServe())
 }

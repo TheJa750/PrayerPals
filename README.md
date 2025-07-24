@@ -12,7 +12,7 @@ A simple web app for creating groups to post prayer requests.
   - [x] Add endpoint and handler for logging in
     - [x] Add token logic to auth package
   - [x] Add endpoint and handler for creating groups
-  - [ ] Add endpoints and handlers for joining groups
+  - [x] Add endpoint and handler for joining groups
   - [ ] Add endpoints and handlers for creating posts for specific groups
   - [ ] Add ability for group owners/admins to assign roles to users
   - [ ] Add ability for group owners/admins to delete posts

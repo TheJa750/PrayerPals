@@ -10,7 +10,7 @@ import (
 )
 
 func (a *APIConfig) CreateUserHandler(w http.ResponseWriter, r *http.Request) {
-	// Handler logic for creating a user
+	// Parse request body for user data
 	userReq, err := ParseJSON[UserRequest](r)
 	if err != nil {
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
@@ -28,7 +28,8 @@ func (a *APIConfig) CreateUserHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err = a.DBQueries.CreateUser(r.Context(), database.CreateUserParams{
+	// Add user to the database
+	userData, err := a.DBQueries.CreateUser(r.Context(), database.CreateUserParams{
 		Username:       userReq.Username,
 		Email:          userReq.Email,
 		HashedPassword: hashedPassword,
@@ -38,10 +39,23 @@ func (a *APIConfig) CreateUserHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.WriteHeader(http.StatusCreated)
+	// Create JSON response
+	jsonUser := User{
+		ID:       userData.ID,
+		Username: userData.Username,
+		Email:    userData.Email,
+	}
+
+	err = CreateJSONResponse(jsonUser, w, http.StatusCreated)
+	if err != nil {
+		log.Printf("Error creating JSON response: %v", err)
+		return
+	}
+
+	log.Printf("User %s created successfully", userData.Username)
 }
 
-func (a *APIConfig) LoginUser(w http.ResponseWriter, r *http.Request) {
+func (a *APIConfig) LoginUserHandler(w http.ResponseWriter, r *http.Request) {
 	// Handler logic for user login
 	loginReq, err := ParseJSON[UserRequest](r)
 	if err != nil {
