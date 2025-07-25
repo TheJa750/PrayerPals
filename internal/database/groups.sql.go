@@ -114,6 +114,40 @@ func (q *Queries) GetGroupMembersIDs(ctx context.Context, groupID uuid.UUID) ([]
 	return items, nil
 }
 
+const getGroupSpecialRoles = `-- name: GetGroupSpecialRoles :many
+SELECT user_id, role
+FROM users_groups
+WHERE group_id = $1 AND role != 'member'
+`
+
+type GetGroupSpecialRolesRow struct {
+	UserID uuid.UUID
+	Role   string
+}
+
+func (q *Queries) GetGroupSpecialRoles(ctx context.Context, groupID uuid.UUID) ([]GetGroupSpecialRolesRow, error) {
+	rows, err := q.db.QueryContext(ctx, getGroupSpecialRoles, groupID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetGroupSpecialRolesRow
+	for rows.Next() {
+		var i GetGroupSpecialRolesRow
+		if err := rows.Scan(&i.UserID, &i.Role); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getGroupsForUser = `-- name: GetGroupsForUser :many
 SELECT group_id
 FROM users_groups

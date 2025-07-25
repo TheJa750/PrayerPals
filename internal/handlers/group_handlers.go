@@ -63,7 +63,7 @@ func (a *APIConfig) CreateGroupHandler(w http.ResponseWriter, r *http.Request) {
 	err = a.DBQueries.AddUserToGroup(r.Context(), database.AddUserToGroupParams{
 		UserID:  userID,
 		GroupID: group.ID,
-		Role:    "owner", // Group creator is owner
+		Role:    "admin", // Group creator is admin
 	})
 	if err != nil {
 		log.Printf("Error adding user to group: %v", err)

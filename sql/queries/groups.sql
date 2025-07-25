@@ -33,3 +33,8 @@ WHERE group_id = $1;
 SELECT group_id
 FROM users_groups
 WHERE user_id = $1;
+
+-- name: GetGroupSpecialRoles :many
+SELECT user_id, role
+FROM users_groups
+WHERE group_id = $1 AND role != 'member';

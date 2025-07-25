@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"errors"
 	"log"
 	"net/http"
 
@@ -180,14 +181,19 @@ func (a *APIConfig) LeaveGroupHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Verify user is in the group before removing
-	isMember, err := a.verifyUserInGroup(r.Context(), userID, groupID)
-	if err != nil {
-		http.Error(w, "Failed to verify group membership", http.StatusInternalServerError)
-		return
-	}
-	if !isMember {
-		http.Error(w, "User not a member of the group", http.StatusForbidden)
+	// Verify user can leave the group
+	// This will check if the user is a member, if they are the only admin,
+	// and if they are the last member of the group
+	// If any check fails, it will return an error
+	canLeaveErr := a.leaveGroupChecks(r.Context(), userID, groupID)
+	if canLeaveErr != nil {
+		if errors.Is(canLeaveErr, ErrUserNotMember) ||
+			errors.Is(canLeaveErr, ErrUserIsOnlyAdmin) ||
+			errors.Is(canLeaveErr, ErrUserIsLastMember) {
+			http.Error(w, canLeaveErr.Error(), http.StatusForbidden)
+			return
+		}
+		http.Error(w, "Failed to leave group", http.StatusInternalServerError)
 		return
 	}
 

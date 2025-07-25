@@ -20,8 +20,8 @@ A simple web app for creating groups to post prayer requests.
   - [ ] Add ability for group owners/admins to delete groups
   - [ ] Add ability for users to see groups they belong to
   - [x] Add ability for users to leave groups
-    - [ ] Add checks for leaving group as owner/admin
-    - [ ] Add checks for leaving group as last user
+    - [x] Add checks for leaving group as owner/admin
+    - [x] Add checks for leaving group as last user
   - [ ] Add ability to invite users to group
 - [ ] **Build a UI**
   - [ ] Set up project structure for static files (HTML, CSS, JS)
