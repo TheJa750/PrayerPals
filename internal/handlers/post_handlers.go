@@ -51,6 +51,7 @@ func (a *APIConfig) CreatePostHandler(w http.ResponseWriter, r *http.Request) {
 		ID:      post.ID,
 		GroupID: post.GroupID,
 		UserID:  post.UserID,
+		Content: postReq.Content,
 	}
 
 	err = CreateJSONResponse(jsonPost, w, http.StatusCreated)
@@ -126,6 +127,7 @@ func (a *APIConfig) CreateCommentHandler(w http.ResponseWriter, r *http.Request)
 		PostID:  comment.ParentPostID.UUID,
 		GroupID: commentReq.GroupID,
 		UserID:  userID,
+		Content: commentReq.Content,
 	}
 
 	err = CreateJSONResponse(jsonComment, w, http.StatusCreated)

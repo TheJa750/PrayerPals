@@ -66,6 +66,7 @@ type Post struct {
 	ID      uuid.UUID `json:"id"`
 	GroupID uuid.UUID `json:"group_id"`
 	UserID  uuid.UUID `json:"user_id"`
+	Content string    `json:"content"`
 }
 
 type CommentRequest struct {
@@ -79,6 +80,7 @@ type Comment struct {
 	PostID  uuid.UUID `json:"post_id"`
 	GroupID uuid.UUID `json:"group_id"`
 	UserID  uuid.UUID `json:"user_id"`
+	Content string    `json:"content"`
 }
 
 type PromoteUserRequest struct {

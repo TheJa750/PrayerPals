@@ -57,6 +57,7 @@ func main() {
 	// User Functions Handlers
 	mux.HandleFunc("POST /api/groups/join", cfg.JoinGroupHandler)    // Expecting query parameter ?group_id=UUID
 	mux.HandleFunc("DELETE /api/groups/join", cfg.LeaveGroupHandler) // Expecting query parameter ?group_id=UUID
+	mux.HandleFunc("GET /api/groups", cfg.GetGroupsForFeed)          // Fetch groups for user feed
 
 	// Group Handlers
 	mux.HandleFunc("POST /api/groups", cfg.CreateGroupHandler)
