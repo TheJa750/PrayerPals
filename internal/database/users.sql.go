@@ -11,6 +11,23 @@ import (
 	"github.com/google/uuid"
 )
 
+const adjustUserGroupRole = `-- name: AdjustUserGroupRole :exec
+UPDATE users_groups
+SET role = $1
+WHERE user_id = $2 AND group_id = $3
+`
+
+type AdjustUserGroupRoleParams struct {
+	Role    string
+	UserID  uuid.UUID
+	GroupID uuid.UUID
+}
+
+func (q *Queries) AdjustUserGroupRole(ctx context.Context, arg AdjustUserGroupRoleParams) error {
+	_, err := q.db.ExecContext(ctx, adjustUserGroupRole, arg.Role, arg.UserID, arg.GroupID)
+	return err
+}
+
 const createUser = `-- name: CreateUser :one
 INSERT INTO users (username, email, hashed_password)
 VALUES ($1, $2, $3)
@@ -34,6 +51,16 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (CreateU
 	var i CreateUserRow
 	err := row.Scan(&i.ID, &i.Username, &i.Email)
 	return i, err
+}
+
+const deleteUser = `-- name: DeleteUser :exec
+DELETE FROM users
+WHERE id = $1
+`
+
+func (q *Queries) DeleteUser(ctx context.Context, id uuid.UUID) error {
+	_, err := q.db.ExecContext(ctx, deleteUser, id)
+	return err
 }
 
 const getUserByID = `-- name: GetUserByID :one
@@ -86,6 +113,24 @@ func (q *Queries) GetUserGroupIDs(ctx context.Context, userID uuid.UUID) ([]uuid
 	return items, nil
 }
 
+const getUserGroupRole = `-- name: GetUserGroupRole :one
+SELECT role
+FROM users_groups
+WHERE user_id = $1 AND group_id = $2
+`
+
+type GetUserGroupRoleParams struct {
+	UserID  uuid.UUID
+	GroupID uuid.UUID
+}
+
+func (q *Queries) GetUserGroupRole(ctx context.Context, arg GetUserGroupRoleParams) (string, error) {
+	row := q.db.QueryRowContext(ctx, getUserGroupRole, arg.UserID, arg.GroupID)
+	var role string
+	err := row.Scan(&role)
+	return role, err
+}
+
 const getUserIDByEmail = `-- name: GetUserIDByEmail :one
 SELECT id, username, email, created_at, updated_at, hashed_password, is_active
 FROM users
@@ -113,5 +158,28 @@ TRUNCATE TABLE users CASCADE
 
 func (q *Queries) ResetUsers(ctx context.Context) error {
 	_, err := q.db.ExecContext(ctx, resetUsers)
+	return err
+}
+
+const updateUser = `-- name: UpdateUser :exec
+UPDATE users
+SET username = $2, email = $3, hashed_password = $4
+WHERE id = $1
+`
+
+type UpdateUserParams struct {
+	ID             uuid.UUID
+	Username       string
+	Email          string
+	HashedPassword string
+}
+
+func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) error {
+	_, err := q.db.ExecContext(ctx, updateUser,
+		arg.ID,
+		arg.Username,
+		arg.Email,
+		arg.HashedPassword,
+	)
 	return err
 }
