@@ -49,6 +49,17 @@ type Group struct {
 	OwnerID     uuid.UUID `json:"owner_id"`
 }
 
+type PostRequest struct {
+	GroupID uuid.UUID `json:"group_id"`
+	Content string    `json:"content"`
+}
+
+type Post struct {
+	ID      uuid.UUID `json:"id"`
+	GroupID uuid.UUID `json:"group_id"`
+	UserID  uuid.UUID `json:"user_id"`
+}
+
 func ParseJSON[T any](r *http.Request) (T, error) {
 	var data T
 

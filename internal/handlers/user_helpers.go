@@ -46,3 +46,18 @@ func (a *APIConfig) getUserIDFromToken(r *http.Request) (uuid.UUID, error) {
 
 	return userID, nil
 }
+
+func (a *APIConfig) verifyUserInGroup(ctx context.Context, userID, groupID uuid.UUID) (bool, error) {
+	members, err := a.DBQueries.GetGroupMembersIDs(ctx, groupID)
+	if err != nil {
+		return false, fmt.Errorf("verifyUserInGroup: error retrieving group members: %w", err)
+	}
+
+	for _, memberID := range members {
+		if memberID == userID {
+			return true, nil
+		}
+	}
+
+	return false, nil
+}

@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"log"
 	"net/http"
 
 	"github.com/TheJa750/PrayerPals/internal/database"
@@ -34,4 +35,51 @@ func (a *APIConfig) JoinGroupHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusNoContent)
+}
+
+func (a *APIConfig) CreatePostHandler(w http.ResponseWriter, r *http.Request) {
+	// Validate JWT and extract user ID
+	userID, err := a.getUserIDFromToken(r)
+	if err != nil {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	// Parse the request body for post content
+	postReq, err := ParseJSON[PostRequest](r)
+	if err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	// Validate user in group (future: add role check in helper function)
+	isMember, err := a.verifyUserInGroup(r.Context(), userID, postReq.GroupID)
+	if err != nil {
+		http.Error(w, "Failed to verify group membership", http.StatusInternalServerError)
+		return
+	}
+	if !isMember {
+		http.Error(w, "User not a member of the group", http.StatusForbidden)
+		return
+	}
+
+	// Create the post in the database
+	post, err := a.DBQueries.CreatePost(r.Context(), database.CreatePostParams{
+		GroupID: postReq.GroupID,
+		UserID:  userID,
+		Content: postReq.Content,
+	})
+	if err != nil {
+		http.Error(w, "Failed to create post", http.StatusInternalServerError)
+		return
+	}
+
+	// Return the created post as JSON response
+	err = CreateJSONResponse(post, w, http.StatusCreated)
+	if err != nil {
+		http.Error(w, "Error creating JSON response", http.StatusInternalServerError)
+		return
+	}
+
+	log.Printf("User %v created post %v in group %v", userID, post.ID, postReq.GroupID)
 }
