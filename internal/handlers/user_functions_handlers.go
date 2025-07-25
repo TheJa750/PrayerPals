@@ -164,3 +164,43 @@ func (a *APIConfig) CreateCommentHandler(w http.ResponseWriter, r *http.Request)
 
 	log.Printf("User %v created comment %v on post %v in group %v", userID, comment.ID, commentReq.PostID, commentReq.GroupID)
 }
+
+func (a *APIConfig) LeaveGroupHandler(w http.ResponseWriter, r *http.Request) {
+	// Validate JWT and extract user ID
+	userID, err := a.getUserIDFromToken(r)
+	if err != nil {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	// Parse the request URL for group ID
+	groupID, err := uuid.Parse(r.URL.Query().Get("group_id"))
+	if err != nil {
+		http.Error(w, "Invalid group ID", http.StatusBadRequest)
+		return
+	}
+
+	// Verify user is in the group before removing
+	isMember, err := a.verifyUserInGroup(r.Context(), userID, groupID)
+	if err != nil {
+		http.Error(w, "Failed to verify group membership", http.StatusInternalServerError)
+		return
+	}
+	if !isMember {
+		http.Error(w, "User not a member of the group", http.StatusForbidden)
+		return
+	}
+
+	// Remove user from the group in database
+	err = a.DBQueries.RemoveUserFromGroup(r.Context(), database.RemoveUserFromGroupParams{
+		UserID:  userID,
+		GroupID: groupID,
+	})
+	if err != nil {
+		http.Error(w, "Failed to leave group", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+	log.Printf("User %v left group %v", userID, groupID)
+}
