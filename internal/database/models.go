@@ -51,7 +51,13 @@ type User struct {
 }
 
 type UsersGroup struct {
-	UserID  uuid.UUID
-	GroupID uuid.UUID
-	Role    string
+	UserID       uuid.UUID
+	GroupID      uuid.UUID
+	Role         string
+	IsBanned     bool
+	IsKicked     bool
+	KickedUntil  sql.NullTime
+	ModdedReason string
+	ModdedAt     sql.NullTime
+	ModdedBy     uuid.NullUUID
 }
