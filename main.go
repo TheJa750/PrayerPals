@@ -57,12 +57,15 @@ func main() {
 	// User Functions Handlers
 	mux.HandleFunc("POST /api/groups/join", cfg.JoinGroupHandler)    // Expecting query parameter ?group_id=UUID
 	mux.HandleFunc("DELETE /api/groups/join", cfg.LeaveGroupHandler) // Expecting query parameter ?group_id=UUID
-	mux.HandleFunc("POST /api/posts", cfg.CreatePostHandler)
 	mux.HandleFunc("POST /api/comments", cfg.CreateCommentHandler)
 
 	// Group Handlers
 	mux.HandleFunc("POST /api/groups", cfg.CreateGroupHandler)
 	mux.HandleFunc("PUT /api/groups/promote", cfg.PromoteUserHandler)
+
+	// Post Handlers
+	mux.HandleFunc("POST /api/posts", cfg.CreatePostHandler)
+	mux.HandleFunc("DELETE /api/posts", cfg.DeletePostHandler) // Expecting JSON
 
 	log.Fatal(svr.ListenAndServe())
 }
