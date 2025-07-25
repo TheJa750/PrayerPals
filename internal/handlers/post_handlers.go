@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"errors"
 	"log"
 	"net/http"
 
@@ -134,4 +135,55 @@ func (a *APIConfig) CreateCommentHandler(w http.ResponseWriter, r *http.Request)
 	}
 
 	log.Printf("User %v created comment %v on post %v in group %v", userID, comment.ID, commentReq.PostID, commentReq.GroupID)
+}
+
+func (a *APIConfig) DeletePostHandler(w http.ResponseWriter, r *http.Request) {
+	// Validate JWT and extract user ID
+	userID, err := a.getUserIDFromToken(r)
+	if err != nil {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	// Parse the request body for post ID
+	deleteReq, err := ParseJSON[DeletePostRequest](r)
+	if err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	// Verify if the user can delete the post
+	err = a.verifyUserCanDeletePost(r.Context(), userID, deleteReq.PostID, deleteReq.GroupID)
+	if err != nil {
+		if errors.Is(err, ErrUserNotMember) || errors.Is(err, ErrUnauthorizedDelete) {
+			http.Error(w, err.Error(), http.StatusForbidden)
+			return
+		}
+		http.Error(w, "Failed to verify authority to delete posts", http.StatusInternalServerError)
+		return
+	}
+
+	// Delete the post from the database
+	err = a.DBQueries.DeletePost(r.Context(), deleteReq.PostID)
+	if err != nil {
+		http.Error(w, "Failed to delete post", http.StatusInternalServerError)
+		return
+	}
+
+	log.Printf("User %v deleted post %v in group %v", userID, deleteReq.PostID, deleteReq.GroupID)
+
+	// Delete comments associated with the post
+	parentID := uuid.NullUUID{
+		UUID:  deleteReq.PostID,
+		Valid: true,
+	}
+
+	err = a.DBQueries.DeleteCommentsFromPost(r.Context(), parentID)
+	if err != nil {
+		http.Error(w, "Failed to delete comments associated with post", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+	log.Printf("User %v deleted comments associated with post %v in group %v", userID, deleteReq.PostID, deleteReq.GroupID)
 }

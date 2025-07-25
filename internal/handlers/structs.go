@@ -87,6 +87,11 @@ type PromoteUserRequest struct {
 	Role         string    `json:"role"` // e.g., "admin", "member"
 }
 
+type DeletePostRequest struct {
+	PostID  uuid.UUID `json:"post_id"`
+	GroupID uuid.UUID `json:"group_id"`
+}
+
 func ParseJSON[T any](r *http.Request) (T, error) {
 	var data T
 
