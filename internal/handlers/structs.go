@@ -9,6 +9,14 @@ import (
 	"github.com/google/uuid"
 )
 
+var validRoles = []string{"admin", "member"}
+
+func getValidRoles() []string {
+	rolesCopy := make([]string, len(validRoles))
+	copy(rolesCopy, validRoles)
+	return rolesCopy
+}
+
 type JsonError struct {
 	Message string `json:"error"`
 }
@@ -71,6 +79,12 @@ type Comment struct {
 	PostID  uuid.UUID `json:"post_id"`
 	GroupID uuid.UUID `json:"group_id"`
 	UserID  uuid.UUID `json:"user_id"`
+}
+
+type PromoteUserRequest struct {
+	GroupID      uuid.UUID `json:"group_id"`
+	TargetUserID uuid.UUID `json:"user_id"`
+	Role         string    `json:"role"` // e.g., "admin", "member"
 }
 
 func ParseJSON[T any](r *http.Request) (T, error) {

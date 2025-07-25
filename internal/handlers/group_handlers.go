@@ -2,8 +2,10 @@ package handlers
 
 import (
 	"database/sql"
+	"errors"
 	"log"
 	"net/http"
+	"strings"
 
 	"github.com/TheJa750/PrayerPals/internal/database"
 	"github.com/google/uuid"
@@ -85,4 +87,63 @@ func (a *APIConfig) CreateGroupHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	log.Printf("Group created successfully: %s", group.Name)
+}
+
+func (a *APIConfig) PromoteUserHandler(w http.ResponseWriter, r *http.Request) {
+	// Validate JWT and extract user ID
+	userID, err := a.getUserIDFromToken(r)
+	if err != nil {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	// Parse the request body for user promotion details
+	promoteReq, err := ParseJSON[PromoteUserRequest](r)
+	if err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	// Check if the user is admin in group
+	userRole, err := a.DBQueries.GetUserGroupRole(r.Context(), database.GetUserGroupRoleParams{
+		UserID:  userID,
+		GroupID: promoteReq.GroupID,
+	})
+	if err != nil {
+		http.Error(w, "Failed to get user role in group", http.StatusInternalServerError)
+		return
+	}
+
+	if userRole != "admin" {
+		http.Error(w, "Only admins can promote users", http.StatusForbidden)
+		return
+	}
+
+	// Perform checks before promoting user
+	role := strings.ToLower(promoteReq.Role)
+	err = a.promoteUserChecks(r.Context(), promoteReq.TargetUserID, promoteReq.GroupID, role)
+	if err != nil {
+		if errors.Is(err, ErrUserNotMember) || errors.Is(err, ErrInvalidRole) || errors.Is(err, ErrUserHasRole) {
+			http.Error(w, err.Error(), http.StatusForbidden)
+			return
+		}
+		http.Error(w, "Failed to promote user", http.StatusInternalServerError)
+		return
+	}
+
+	// Update user role in the database
+	err = a.DBQueries.AdjustUserGroupRole(r.Context(), database.AdjustUserGroupRoleParams{
+		UserID:  promoteReq.TargetUserID,
+		GroupID: promoteReq.GroupID,
+		Role:    role,
+	})
+	if err != nil {
+		http.Error(w, "Failed to promote user", http.StatusInternalServerError)
+		return
+	}
+
+	// Respond with success
+	w.WriteHeader(http.StatusNoContent)
+	log.Printf("User %v promoted to %s in group %v", promoteReq.TargetUserID, role, promoteReq.GroupID)
+
 }

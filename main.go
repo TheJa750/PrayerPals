@@ -42,7 +42,7 @@ func main() {
 
 	mux.Handle("/app/", fileHandler)
 
-	//Admin Handlers
+	// Server Admin Handlers
 	mux.HandleFunc("POST /admin/reset", cfg.ResetDatabase)
 	mux.HandleFunc("POST /admin/reset/users", cfg.ResetUsersOnly)
 	mux.HandleFunc("POST /admin/reset/groups", cfg.ResetGroupsOnly)
@@ -62,6 +62,7 @@ func main() {
 
 	// Group Handlers
 	mux.HandleFunc("POST /api/groups", cfg.CreateGroupHandler)
+	mux.HandleFunc("PUT /api/groups/promote", cfg.PromoteUserHandler)
 
 	log.Fatal(svr.ListenAndServe())
 }
