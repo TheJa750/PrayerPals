@@ -60,6 +60,19 @@ type Post struct {
 	UserID  uuid.UUID `json:"user_id"`
 }
 
+type CommentRequest struct {
+	PostID  uuid.UUID `json:"post_id"`
+	GroupID uuid.UUID `json:"group_id"`
+	Content string    `json:"content"`
+}
+
+type Comment struct {
+	ID      uuid.UUID `json:"id"`
+	PostID  uuid.UUID `json:"post_id"`
+	GroupID uuid.UUID `json:"group_id"`
+	UserID  uuid.UUID `json:"user_id"`
+}
+
 func ParseJSON[T any](r *http.Request) (T, error) {
 	var data T
 

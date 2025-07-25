@@ -61,3 +61,16 @@ func (a *APIConfig) verifyUserInGroup(ctx context.Context, userID, groupID uuid.
 
 	return false, nil
 }
+
+func (a *APIConfig) verifyPostInGroup(ctx context.Context, postID, groupID uuid.UUID) (bool, error) {
+	post, err := a.DBQueries.GetPostByID(ctx, postID)
+	if err != nil {
+		return false, fmt.Errorf("verifyPostInGroup: error retrieving post: %w", err)
+	}
+
+	if post.GroupID != groupID {
+		return false, nil
+	}
+
+	return true, nil
+}
