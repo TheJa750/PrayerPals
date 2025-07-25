@@ -23,11 +23,10 @@ WHERE id = $2
 AND is_deleted = FALSE
 RETURNING *;
 
--- name: DeletePost :one
+-- name: DeletePost :exec
 UPDATE posts
 SET is_deleted = TRUE, updated_at = CURRENT_TIMESTAMP
-WHERE id = $1
-RETURNING *;
+WHERE id = $1;
 
 -- name: RestorePost :one
 UPDATE posts
@@ -44,3 +43,8 @@ LIMIT $2 OFFSET $3;
 
 -- name: ResetPosts :exec
 TRUNCATE TABLE posts CASCADE;
+
+-- name: DeleteCommentsFromPost :exec
+UPDATE posts
+SET updated_at = CURRENT_TIMESTAMP, is_deleted = TRUE
+WHERE parent_post_id = $1;

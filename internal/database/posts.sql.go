@@ -66,27 +66,26 @@ func (q *Queries) CreatePost(ctx context.Context, arg CreatePostParams) (CreateP
 	return i, err
 }
 
-const deletePost = `-- name: DeletePost :one
+const deleteCommentsFromPost = `-- name: DeleteCommentsFromPost :exec
+UPDATE posts
+SET updated_at = CURRENT_TIMESTAMP, is_deleted = TRUE
+WHERE parent_post_id = $1
+`
+
+func (q *Queries) DeleteCommentsFromPost(ctx context.Context, parentPostID uuid.NullUUID) error {
+	_, err := q.db.ExecContext(ctx, deleteCommentsFromPost, parentPostID)
+	return err
+}
+
+const deletePost = `-- name: DeletePost :exec
 UPDATE posts
 SET is_deleted = TRUE, updated_at = CURRENT_TIMESTAMP
 WHERE id = $1
-RETURNING id, user_id, group_id, content, created_at, updated_at, parent_post_id, is_deleted
 `
 
-func (q *Queries) DeletePost(ctx context.Context, id uuid.UUID) (Post, error) {
-	row := q.db.QueryRowContext(ctx, deletePost, id)
-	var i Post
-	err := row.Scan(
-		&i.ID,
-		&i.UserID,
-		&i.GroupID,
-		&i.Content,
-		&i.CreatedAt,
-		&i.UpdatedAt,
-		&i.ParentPostID,
-		&i.IsDeleted,
-	)
-	return i, err
+func (q *Queries) DeletePost(ctx context.Context, id uuid.UUID) error {
+	_, err := q.db.ExecContext(ctx, deletePost, id)
+	return err
 }
 
 const getPostByID = `-- name: GetPostByID :one
