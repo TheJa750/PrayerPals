@@ -189,3 +189,34 @@ func (a *APIConfig) DeletePostHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 	log.Printf("User %v deleted comments associated with post %v in group %v", userID, deleteReq.PostID, deleteReq.GroupID)
 }
+
+func (a *APIConfig) GetCommentsForPostHandler(w http.ResponseWriter, r *http.Request) {
+	// Validate JWT and extract user ID
+	userID, err := a.getUserIDFromToken(r)
+	if err != nil {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	// Extract post ID from query parameters
+	postID, err := parseUUIDPathParam(r, "post_id")
+	if err != nil {
+		http.Error(w, "Invalid post ID", http.StatusBadRequest)
+		return
+	}
+
+	// Fetch comments for the post
+	comments, err := a.getCommentsOnPost(r.Context(), postID)
+	if err != nil {
+		http.Error(w, "Failed to fetch comments", http.StatusInternalServerError)
+		return
+	}
+
+	err = CreateJSONResponse(comments, w, http.StatusOK)
+	if err != nil {
+		http.Error(w, "Error creating JSON response", http.StatusInternalServerError)
+		return
+	}
+
+	log.Printf("User %v fetched comments for post %v", userID, postID)
+}

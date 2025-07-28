@@ -3,6 +3,7 @@ package handlers
 import (
 	"context"
 	"errors"
+	"time"
 
 	"github.com/google/uuid"
 )
@@ -35,4 +36,29 @@ func (a *APIConfig) verifyUserCanDeletePost(ctx context.Context, userID, postID,
 	}
 
 	return ErrUnauthorizedDelete
+}
+
+func (a *APIConfig) getCommentsOnPost(ctx context.Context, postID uuid.UUID) ([]Comment, error) {
+	parentID := uuid.NullUUID{
+		UUID:  postID,
+		Valid: true,
+	}
+	comments, err := a.DBQueries.GetCommentsByPostID(ctx, parentID)
+	if err != nil {
+		return nil, err
+	}
+
+	// Convert database comments to API Comment type
+	jsonComments := make([]Comment, len(comments))
+	for i, comment := range comments {
+		jsonComments[i] = Comment{
+			ID:        comment.ID,
+			PostID:    postID,
+			UserID:    comment.UserID,
+			Content:   comment.Content,
+			CreatedAt: comment.CreatedAt.Time.Format(time.RFC3339),
+		}
+	}
+
+	return jsonComments, nil
 }

@@ -76,11 +76,12 @@ type CommentRequest struct {
 }
 
 type Comment struct {
-	ID      uuid.UUID `json:"id"`
-	PostID  uuid.UUID `json:"post_id"`
-	GroupID uuid.UUID `json:"group_id"`
-	UserID  uuid.UUID `json:"user_id"`
-	Content string    `json:"content"`
+	ID        uuid.UUID `json:"id"`
+	PostID    uuid.UUID `json:"post_id"`
+	GroupID   uuid.UUID `json:"group_id"`
+	UserID    uuid.UUID `json:"user_id"`
+	Content   string    `json:"content"`
+	CreatedAt string    `json:"created_at"`
 }
 
 type PromoteUserRequest struct {

@@ -88,6 +88,45 @@ func (q *Queries) DeletePost(ctx context.Context, id uuid.UUID) error {
 	return err
 }
 
+const getCommentsByPostID = `-- name: GetCommentsByPostID :many
+SELECT id, user_id, group_id, content, created_at, updated_at, parent_post_id, is_deleted FROM posts
+WHERE parent_post_id = $1
+AND is_deleted = FALSE
+ORDER BY created_at DESC
+`
+
+func (q *Queries) GetCommentsByPostID(ctx context.Context, parentPostID uuid.NullUUID) ([]Post, error) {
+	rows, err := q.db.QueryContext(ctx, getCommentsByPostID, parentPostID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Post
+	for rows.Next() {
+		var i Post
+		if err := rows.Scan(
+			&i.ID,
+			&i.UserID,
+			&i.GroupID,
+			&i.Content,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.ParentPostID,
+			&i.IsDeleted,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getPostByID = `-- name: GetPostByID :one
 SELECT id, user_id, group_id, content, created_at, updated_at, parent_post_id, is_deleted FROM posts WHERE id =  $1
 `

@@ -48,3 +48,9 @@ TRUNCATE TABLE posts CASCADE;
 UPDATE posts
 SET updated_at = CURRENT_TIMESTAMP, is_deleted = TRUE
 WHERE parent_post_id = $1;
+
+-- name: GetCommentsByPostID :many
+SELECT * FROM posts
+WHERE parent_post_id = $1
+AND is_deleted = FALSE
+ORDER BY created_at DESC;

@@ -69,6 +69,7 @@ func main() {
 	router.HandleFunc("/api/posts", cfg.CreatePostHandler).Methods("POST")
 	router.HandleFunc("/api/posts", cfg.DeletePostHandler).Methods("DELETE") // Expecting JSON
 	router.HandleFunc("/api/comments", cfg.CreateCommentHandler).Methods("POST")
+	router.HandleFunc("/api/comments/{post_id}", cfg.GetCommentsForPostHandler).Methods("GET")
 
 	log.Fatal(svr.ListenAndServe())
 }
