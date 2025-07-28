@@ -19,6 +19,7 @@ var ErrInvalidRole = errors.New("invalid role specified")
 var ErrUserHasRole = errors.New("user already has the specified role")
 var ErrUserNotAdmin = errors.New("user is not an admin of group")
 var ErrInvalidID = errors.New("missing or invalid UUID parameter")
+var ErrCannotModAdmin = errors.New("cannot moderate an admin")
 
 func (a *APIConfig) leaveGroupChecks(ctx context.Context, userID, groupID uuid.UUID) error {
 	// Verify if the user is a member of the group
@@ -157,4 +158,52 @@ func parseUUIDPathParam(r *http.Request, key string) (uuid.UUID, error) {
 		return uuid.Nil, err
 	}
 	return id, nil
+}
+
+func (a *APIConfig) moderateUser(ctx context.Context, groupID, targetID, adminID uuid.UUID, action, reason string) error {
+	// Check if the admin is an admin of the group
+	if err := a.isAdmin(ctx, adminID, groupID); err != nil {
+		return err
+	}
+
+	// Verify if the target user is a member of the group
+	isMember, err := a.verifyUserInGroup(ctx, targetID, groupID)
+	if err != nil {
+		return err
+	}
+	if !isMember {
+		return ErrUserNotMember
+	}
+
+	// Verify the target user is not an admin
+	targetRole, err := a.DBQueries.GetUserGroupRole(ctx, database.GetUserGroupRoleParams{
+		UserID:  targetID,
+		GroupID: groupID,
+	})
+	if err != nil {
+		return err
+	}
+	if targetRole == "admin" {
+		return ErrCannotModAdmin
+	}
+
+	// Perform the moderation action
+	switch action {
+	case "kick": // Kick has a length of 7 days
+		return a.DBQueries.KickUser(ctx, database.KickUserParams{
+			GroupID:      groupID,
+			UserID:       targetID,
+			ModdedReason: reason,
+			ModdedBy:     uuid.NullUUID{UUID: adminID, Valid: true},
+		})
+	case "ban": // Ban is permanent
+		return a.DBQueries.BanUser(ctx, database.BanUserParams{
+			GroupID:      groupID,
+			UserID:       targetID,
+			ModdedReason: reason,
+			ModdedBy:     uuid.NullUUID{UUID: adminID, Valid: true},
+		})
+	default:
+		return errors.New("invalid moderation action")
+	}
 }

@@ -65,6 +65,7 @@ func main() {
 	router.HandleFunc("/api/groups/promote", cfg.PromoteUserHandler).Methods("PUT")
 	router.HandleFunc("/api/groups/{group_id}/posts", cfg.GetPostFeedHandler).Methods("GET") // Expecting query parameters ?limit=10&offset=0
 	router.HandleFunc("/api/groups/{group_id}", cfg.DeleteGroupHandler).Methods("DELETE")
+	router.HandleFunc("/api/groups/{group_id}/members/{user_id}", cfg.ModerateUserHandler).Methods("PUT") // Expecting JSON body for action and reason
 
 	// Post Handlers
 	router.HandleFunc("/api/posts", cfg.CreatePostHandler).Methods("POST")

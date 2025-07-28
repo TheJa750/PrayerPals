@@ -101,6 +101,11 @@ type PostFeedRequest struct {
 	Offset  int       `json:"offset"`
 }
 
+type ModerateUserRequest struct {
+	Action string `json:"action"` // e.g., "kick", "ban"
+	Reason string `json:"reason"` // Reason for the action
+}
+
 func ParseJSON[T any](r *http.Request) (T, error) {
 	var data T
 

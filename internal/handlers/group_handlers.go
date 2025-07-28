@@ -223,3 +223,57 @@ func (a *APIConfig) DeleteGroupHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 	log.Printf("Group %v deleted successfully by user %v", groupID, userID)
 }
+
+func (a *APIConfig) ModerateUserHandler(w http.ResponseWriter, r *http.Request) {
+	// Validate JWT and extract user ID
+	userID, err := a.getUserIDFromToken(r)
+	if err != nil {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	// Parse the request body for moderation details
+	moderateReq, err := ParseJSON[ModerateUserRequest](r)
+	if err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	// Get group/target IDs from URL path
+	groupID, err := parseUUIDPathParam(r, "group_id")
+	if err != nil {
+		http.Error(w, "Invalid group ID", http.StatusBadRequest)
+		return
+	}
+
+	targetUserID, err := parseUUIDPathParam(r, "user_id")
+	if err != nil {
+		http.Error(w, "Invalid user ID", http.StatusBadRequest)
+		return
+	}
+
+	// Moderate the user
+	err = a.moderateUser(
+		r.Context(),
+		groupID,
+		targetUserID,
+		userID,
+		moderateReq.Action,
+		moderateReq.Reason,
+	)
+	if err != nil {
+		if errors.Is(err, ErrUserNotAdmin) {
+			http.Error(w, "User is not an admin of the group", http.StatusForbidden)
+			return
+		}
+		if errors.Is(err, ErrUserNotMember) {
+			http.Error(w, "Target user is not a member of the group", http.StatusForbidden)
+			return
+		}
+		http.Error(w, "Failed to moderate user", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+	log.Printf("User %v moderated in group %v by admin %v", targetUserID, groupID, userID)
+}
