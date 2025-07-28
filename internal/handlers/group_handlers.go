@@ -104,8 +104,20 @@ func (a *APIConfig) PromoteUserHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Get group ID and target user ID from URL path
+	groupID, err := parseUUIDPathParam(r, "group_id")
+	if err != nil {
+		http.Error(w, "Invalid group ID", http.StatusBadRequest)
+		return
+	}
+	targetUserID, err := parseUUIDPathParam(r, "user_id")
+	if err != nil {
+		http.Error(w, "Invalid user ID", http.StatusBadRequest)
+		return
+	}
+
 	// Check if the user is admin in group
-	if err = a.isAdmin(r.Context(), userID, promoteReq.GroupID); err != nil {
+	if err = a.isAdmin(r.Context(), userID, groupID); err != nil {
 		if errors.Is(err, ErrUserNotAdmin) {
 			http.Error(w, "User is not an admin of the group", http.StatusForbidden)
 			return
@@ -114,32 +126,21 @@ func (a *APIConfig) PromoteUserHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Perform checks before promoting user
+	// Perform checks and promote user
 	role := strings.ToLower(promoteReq.Role)
-	err = a.promoteUserChecks(r.Context(), promoteReq.TargetUserID, promoteReq.GroupID, role)
+	err = a.promoteUser(r.Context(), groupID, targetUserID, role)
 	if err != nil {
-		if errors.Is(err, ErrUserNotMember) || errors.Is(err, ErrInvalidRole) || errors.Is(err, ErrUserHasRole) {
-			http.Error(w, err.Error(), http.StatusForbidden)
+		if errors.Is(err, ErrUserNotMember) {
+			http.Error(w, "Target user is not a member of the group", http.StatusForbidden)
 			return
 		}
 		http.Error(w, "Failed to promote user", http.StatusInternalServerError)
 		return
 	}
 
-	// Update user role in the database
-	err = a.DBQueries.AdjustUserGroupRole(r.Context(), database.AdjustUserGroupRoleParams{
-		UserID:  promoteReq.TargetUserID,
-		GroupID: promoteReq.GroupID,
-		Role:    role,
-	})
-	if err != nil {
-		http.Error(w, "Failed to promote user", http.StatusInternalServerError)
-		return
-	}
-
 	// Respond with success
 	w.WriteHeader(http.StatusNoContent)
-	log.Printf("User %v promoted to %s in group %v", promoteReq.TargetUserID, role, promoteReq.GroupID)
+	log.Printf("User %v promoted to %s in group %v", targetUserID, role, groupID)
 
 }
 

@@ -207,3 +207,17 @@ func (a *APIConfig) moderateUser(ctx context.Context, groupID, targetID, adminID
 		return errors.New("invalid moderation action")
 	}
 }
+
+func (a *APIConfig) promoteUser(ctx context.Context, groupID, userID uuid.UUID, role string) error {
+	// Perform checks before promoting user
+	if err := a.promoteUserChecks(ctx, userID, groupID, role); err != nil {
+		return err
+	}
+
+	// Update user role in the database
+	return a.DBQueries.AdjustUserGroupRole(ctx, database.AdjustUserGroupRoleParams{
+		UserID:  userID,
+		GroupID: groupID,
+		Role:    role,
+	})
+}

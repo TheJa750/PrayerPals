@@ -79,9 +79,7 @@ type Comment struct {
 }
 
 type PromoteUserRequest struct {
-	GroupID      uuid.UUID `json:"group_id"`
-	TargetUserID uuid.UUID `json:"user_id"`
-	Role         string    `json:"role"` // e.g., "admin", "member"
+	Role string `json:"role"` // e.g., "admin", "member"
 }
 
 type PostFeedRequest struct {

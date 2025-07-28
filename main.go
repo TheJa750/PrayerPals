@@ -51,8 +51,8 @@ func main() {
 	router.HandleFunc("/api/health", handlers.HealthCheck).Methods("GET")
 
 	// User Account Handlers
-	router.HandleFunc("/api/users", cfg.CreateUserHandler).Methods("POST")
-	router.HandleFunc("/api/login", cfg.LoginUserHandler).Methods("POST")
+	router.HandleFunc("/api/users", cfg.CreateUserHandler).Methods("POST") // Expecting JSON body for username/email/password
+	router.HandleFunc("/api/login", cfg.LoginUserHandler).Methods("POST")  // Expecting JSON body for email/password
 	router.HandleFunc("/api/refresh", cfg.RefreshJWTHandler).Methods("POST")
 
 	// User Functions Handlers
@@ -61,16 +61,16 @@ func main() {
 	router.HandleFunc("/api/groups", cfg.GetGroupsForFeed).Methods("GET")
 
 	// Group Handlers
-	router.HandleFunc("/api/groups", cfg.CreateGroupHandler).Methods("POST")
-	router.HandleFunc("/api/groups/promote", cfg.PromoteUserHandler).Methods("PUT")
-	router.HandleFunc("/api/groups/{group_id}/posts", cfg.GetPostFeedHandler).Methods("GET") // Expecting query parameters ?limit=10&offset=0
+	router.HandleFunc("/api/groups", cfg.CreateGroupHandler).Methods("POST")                                     // Expecting JSON body for name/description
+	router.HandleFunc("/api/groups/{group_id}/members/{user_id}/promote", cfg.PromoteUserHandler).Methods("PUT") // Expecting JSON body for new role
+	router.HandleFunc("/api/groups/{group_id}/posts", cfg.GetPostFeedHandler).Methods("GET")                     // Expecting query parameters ?limit=10&offset=0
 	router.HandleFunc("/api/groups/{group_id}", cfg.DeleteGroupHandler).Methods("DELETE")
-	router.HandleFunc("/api/groups/{group_id}/members/{user_id}", cfg.ModerateUserHandler).Methods("PUT") // Expecting JSON body for action and reason
+	router.HandleFunc("/api/groups/{group_id}/members/{user_id}/moderate", cfg.ModerateUserHandler).Methods("PUT") // Expecting JSON body for action and reason
 
 	// Post Handlers
-	router.HandleFunc("/api/groups/{group_id}/posts", cfg.CreatePostHandler).Methods("POST")
-	router.HandleFunc("/api/groups/{group_id}/posts/{post_id}", cfg.DeletePostHandler).Methods("DELETE") // Expecting JSON
-	router.HandleFunc("/api/groups/{group_id}/posts/{post_id}/comments", cfg.CreateCommentHandler).Methods("POST")
+	router.HandleFunc("/api/groups/{group_id}/posts", cfg.CreatePostHandler).Methods("POST") // Expecting JSON body for post content
+	router.HandleFunc("/api/groups/{group_id}/posts/{post_id}", cfg.DeletePostHandler).Methods("DELETE")
+	router.HandleFunc("/api/groups/{group_id}/posts/{post_id}/comments", cfg.CreateCommentHandler).Methods("POST") // Expecting JSON body for comment content
 	router.HandleFunc("/api/groups/{group_id}/posts/{post_id}/comments", cfg.GetCommentsForPostHandler).Methods("GET")
 
 	log.Fatal(svr.ListenAndServe())
