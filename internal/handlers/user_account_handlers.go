@@ -91,11 +91,27 @@ func (a *APIConfig) LoginUserHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	jsonUser := UserLoggedIn{
-		ID:           userData.ID,
-		Username:     userData.Username,
-		AccessToken:  accessToken,
-		RefreshToken: refreshToken,
+		ID:       userData.ID,
+		Username: userData.Username,
 	}
+
+	http.SetCookie(w, &http.Cookie{
+		Name:     "access_token",
+		Value:    accessToken,
+		Path:     "/",
+		HttpOnly: true,
+		Secure:   false, // Use true in production (HTTPS)
+		SameSite: http.SameSiteStrictMode,
+	})
+
+	http.SetCookie(w, &http.Cookie{
+		Name:     "refresh_token",
+		Value:    refreshToken,
+		Path:     "/",
+		HttpOnly: true,
+		Secure:   false, // Use true in production (HTTPS)
+		SameSite: http.SameSiteStrictMode,
+	})
 
 	err = CreateJSONResponse(jsonUser, w, http.StatusOK)
 	if err != nil {
@@ -108,14 +124,14 @@ func (a *APIConfig) LoginUserHandler(w http.ResponseWriter, r *http.Request) {
 
 func (a *APIConfig) RefreshJWTHandler(w http.ResponseWriter, r *http.Request) {
 	// Get refresh token from header
-	token, err := auth.GetBearerToken(r.Header)
+	token, err := r.Cookie("refresh_token")
 	if err != nil {
-		http.Error(w, "Invalid token format", http.StatusBadRequest)
+		http.Error(w, "Missing refresh token", http.StatusUnauthorized)
 		return
 	}
 
 	// Check user refresh token
-	refreshToken, err := a.DBQueries.GetUserByToken(r.Context(), token)
+	refreshToken, err := a.DBQueries.GetUserByToken(r.Context(), token.Value)
 	if err != nil {
 		http.Error(w, "Invalid refresh token", http.StatusUnauthorized)
 		return
@@ -133,10 +149,17 @@ func (a *APIConfig) RefreshJWTHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	jsonResponse := UserLoggedIn{
-		ID:           userID,
-		AccessToken:  accessToken,
-		RefreshToken: token,
+		ID: userID,
 	}
+
+	http.SetCookie(w, &http.Cookie{
+		Name:     "access_token",
+		Value:    accessToken,
+		Path:     "/",
+		HttpOnly: true,
+		Secure:   false, // Use true in production (HTTPS)
+		SameSite: http.SameSiteStrictMode,
+	})
 
 	err = CreateJSONResponse(jsonResponse, w, http.StatusOK)
 	if err != nil {

@@ -34,12 +34,15 @@ func (a *APIConfig) issueTokens(user database.User, jwtSecret string, activeTime
 }
 
 func (a *APIConfig) getUserIDFromToken(r *http.Request) (uuid.UUID, error) {
-	tokenString, err := auth.GetBearerToken(r.Header)
+	token, err := r.Cookie("access_token")
 	if err != nil {
-		return uuid.Nil, fmt.Errorf("getUserIDFromToken: %w", err)
+		return uuid.Nil, fmt.Errorf("getUserIDFromToken: missing access token cookie: %w", err)
+	}
+	if token == nil {
+		return uuid.Nil, fmt.Errorf("getUserIDFromToken: access token cookie is nil")
 	}
 
-	userID, err := auth.ValidateJWT(tokenString, a.JWTSecret)
+	userID, err := auth.ValidateJWT(token.Value, a.JWTSecret)
 	if err != nil {
 		return uuid.Nil, fmt.Errorf("getUserIDFromToken: %w", err)
 	}
