@@ -53,6 +53,7 @@ func main() {
 	// User Account Handlers
 	mux.HandleFunc("POST /api/users", cfg.CreateUserHandler)
 	mux.HandleFunc("POST /api/login", cfg.LoginUserHandler)
+	mux.HandleFunc("POST /api/refresh", cfg.RefreshJWTHandler)
 
 	// User Functions Handlers
 	mux.HandleFunc("POST /api/groups/join", cfg.JoinGroupHandler)    // Expecting query parameter ?group_id=UUID

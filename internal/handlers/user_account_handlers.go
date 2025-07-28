@@ -105,3 +105,44 @@ func (a *APIConfig) LoginUserHandler(w http.ResponseWriter, r *http.Request) {
 
 	log.Printf("User %s logged in successfully", userData.Username)
 }
+
+func (a *APIConfig) RefreshJWTHandler(w http.ResponseWriter, r *http.Request) {
+	// Get refresh token from header
+	token, err := auth.GetBearerToken(r.Header)
+	if err != nil {
+		http.Error(w, "Invalid token format", http.StatusBadRequest)
+		return
+	}
+
+	// Check user refresh token
+	refreshToken, err := a.DBQueries.GetUserByToken(r.Context(), token)
+	if err != nil {
+		http.Error(w, "Invalid refresh token", http.StatusUnauthorized)
+		return
+	}
+
+	// Assign user ID from the refresh token
+	userID := refreshToken.UserID
+
+	// Issue new tokens
+	accessToken, err := auth.MakeJWT(userID, a.JWTSecret, 1800*time.Second)
+	if err != nil {
+		log.Printf("Error generating access token for user %v: %v", userID, err)
+		http.Error(w, "Error generating access token", http.StatusInternalServerError)
+		return
+	}
+
+	jsonResponse := UserLoggedIn{
+		ID:           userID,
+		AccessToken:  accessToken,
+		RefreshToken: token,
+	}
+
+	err = CreateJSONResponse(jsonResponse, w, http.StatusOK)
+	if err != nil {
+		log.Printf("Error creating JSON response: %v", err)
+		return
+	}
+
+	log.Printf("Tokens refreshed for user %v", userID)
+}

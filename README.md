@@ -25,7 +25,10 @@ A simple web app for creating groups to post prayer requests.
   - [x] Add ability for users to leave groups
     - [x] Add checks for leaving group as owner/admin
     - [x] Add checks for leaving group as last user
-  - [ ] Add access/refresh token handling (mainly updating access if refresh is still valid)
+  - [ ] Add access/refresh token handling
+    - [x] Add ability to refresh access token if refresh token is valid
+    - [ ] Add endpoint/handler for revoking refresh token
+    - [ ] Add logic for revoking token on logout and password change
   - [ ] Add ability to invite users to group
 - [ ] **Build a UI**
   - [ ] Set up project structure for static files (HTML, CSS, JS)
