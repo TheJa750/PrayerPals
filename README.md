@@ -20,7 +20,7 @@ A simple web app for creating groups to post prayer requests.
   - [x] Add endpoint and handler for fetching comments (Post Feed)
   - [x] Add ability for group owners/admins to assign roles to users
   - [x] Add ability for group owners/admins to delete posts
-  - [ ] Add ability for group owners/admins to delete groups
+  - [x] Add ability for group owners/admins to delete groups
   - [ ] Add ability for group owners/admins to kick/ban users
   - [x] Add ability for users to leave groups
     - [x] Add checks for leaving group as owner/admin

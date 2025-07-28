@@ -187,3 +187,39 @@ func (a *APIConfig) GetPostFeedHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
+
+func (a *APIConfig) DeleteGroupHandler(w http.ResponseWriter, r *http.Request) {
+	// Validate JWT and extract user ID
+	userID, err := a.getUserIDFromToken(r)
+	if err != nil {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	// Parse the group ID from the URL path
+	groupID, err := parseUUIDPathParam(r, "group_id")
+	if err != nil {
+		http.Error(w, "Invalid group ID", http.StatusBadRequest)
+		return
+	}
+
+	// Check if the user is an admin of the group
+	if err = a.isAdmin(r.Context(), userID, groupID); err != nil {
+		if errors.Is(err, ErrUserNotAdmin) {
+			http.Error(w, "User is not an admin of the group", http.StatusForbidden)
+			return
+		}
+		http.Error(w, "Failed to check admin status", http.StatusInternalServerError)
+		return
+	}
+
+	// Delete the group from the database
+	err = a.DBQueries.DeleteGroup(r.Context(), groupID)
+	if err != nil {
+		http.Error(w, "Failed to delete group", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+	log.Printf("Group %v deleted successfully by user %v", groupID, userID)
+}
