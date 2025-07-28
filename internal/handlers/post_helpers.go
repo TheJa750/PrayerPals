@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 
-	"github.com/TheJa750/PrayerPals/internal/database"
 	"github.com/google/uuid"
 )
 
@@ -31,16 +30,8 @@ func (a *APIConfig) verifyUserCanDeletePost(ctx context.Context, userID, postID,
 	}
 
 	// Check if the user is an admin in the group
-	userRole, err := a.DBQueries.GetUserGroupRole(ctx, database.GetUserGroupRoleParams{
-		UserID:  userID,
-		GroupID: groupID,
-	})
-	if err != nil {
-		return err
-	}
-
-	if userRole == "admin" {
-		return nil // User is an admin in the group
+	if err = a.isAdmin(ctx, userID, groupID); err != nil {
+		return err // error will be ErrUserNotAdmin or a DB query error
 	}
 
 	return ErrUnauthorizedDelete

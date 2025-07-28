@@ -105,17 +105,12 @@ func (a *APIConfig) PromoteUserHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Check if the user is admin in group
-	userRole, err := a.DBQueries.GetUserGroupRole(r.Context(), database.GetUserGroupRoleParams{
-		UserID:  userID,
-		GroupID: promoteReq.GroupID,
-	})
-	if err != nil {
-		http.Error(w, "Failed to get user role in group", http.StatusInternalServerError)
-		return
-	}
-
-	if userRole != "admin" {
-		http.Error(w, "Only admins can promote users", http.StatusForbidden)
+	if err = a.isAdmin(r.Context(), userID, promoteReq.GroupID); err != nil {
+		if errors.Is(err, ErrUserNotAdmin) {
+			http.Error(w, "User is not an admin of the group", http.StatusForbidden)
+			return
+		}
+		http.Error(w, "Failed to check admin status", http.StatusInternalServerError)
 		return
 	}
 
@@ -146,4 +141,37 @@ func (a *APIConfig) PromoteUserHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 	log.Printf("User %v promoted to %s in group %v", promoteReq.TargetUserID, role, promoteReq.GroupID)
 
+}
+
+func (a *APIConfig) GetPostFeedHandler(w http.ResponseWriter, r *http.Request) {
+	// Validate JWT and extract user ID
+	userID, err := a.getUserIDFromToken(r)
+	if err != nil {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	// Parse the request body for post feed details
+	postFeedReq, err := ParseJSON[PostFeedRequest](r)
+	if err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	// Perform checks and get posts for the group
+	posts, err := a.getPostFeed(r.Context(), userID, postFeedReq.GroupID, postFeedReq.Limit, postFeedReq.Offset)
+	if err != nil {
+		if errors.Is(err, ErrUserNotMember) {
+			http.Error(w, "User is not a member of the group", http.StatusForbidden)
+			return
+		}
+		http.Error(w, "Failed to get post feed", http.StatusInternalServerError)
+		return
+	}
+
+	// Create JSON response
+	if err := CreateJSONResponse(posts, w, http.StatusOK); err != nil {
+		log.Printf("Error creating JSON response: %v", err)
+		return
+	}
 }

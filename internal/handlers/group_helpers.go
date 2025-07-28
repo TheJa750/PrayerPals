@@ -14,6 +14,7 @@ var ErrUserIsOnlyAdmin = errors.New("cannot leave group as the only admin")
 var ErrUserIsLastMember = errors.New("cannot leave group as the last member")
 var ErrInvalidRole = errors.New("invalid role specified")
 var ErrUserHasRole = errors.New("user already has the specified role")
+var ErrUserNotAdmin = errors.New("user is not an admin of group")
 
 func (a *APIConfig) leaveGroupChecks(ctx context.Context, userID, groupID uuid.UUID) error {
 	// Verify if the user is a member of the group
@@ -74,6 +75,57 @@ func (a *APIConfig) promoteUserChecks(ctx context.Context, userID, groupID uuid.
 	}
 	if userRole == role {
 		return ErrUserHasRole
+	}
+
+	return nil
+}
+
+func (a *APIConfig) getPostFeed(ctx context.Context, userID, groupID uuid.UUID, limit, offset int) ([]Post, error) {
+	// Verify if the user is a member of the group
+	isMember, err := a.verifyUserInGroup(ctx, userID, groupID)
+	if err != nil {
+		return nil, err
+	}
+	if !isMember {
+		return nil, ErrUserNotMember
+	}
+
+	// Fetch posts for the group
+	posts, err := a.DBQueries.GetPostsForFeed(ctx, database.GetPostsForFeedParams{
+		GroupID: groupID,
+		Limit:   int32(limit),
+		Offset:  int32(offset),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	// Convert database posts to API Post structs
+	jsonPosts := make([]Post, len(posts))
+	for i, post := range posts {
+		jsonPosts[i] = Post{
+			ID:      post.ID,
+			GroupID: post.GroupID,
+			UserID:  post.UserID,
+			Content: post.Content,
+		}
+	}
+
+	return jsonPosts, nil
+}
+
+func (a *APIConfig) isAdmin(ctx context.Context, userID, groupID uuid.UUID) error {
+	// Check if the user is an admin of the group
+	userRole, err := a.DBQueries.GetUserGroupRole(ctx, database.GetUserGroupRoleParams{
+		UserID:  userID,
+		GroupID: groupID,
+	})
+	if err != nil {
+		return err
+	}
+
+	if userRole != "admin" {
+		return ErrUserNotAdmin
 	}
 
 	return nil

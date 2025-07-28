@@ -94,6 +94,12 @@ type DeletePostRequest struct {
 	GroupID uuid.UUID `json:"group_id"`
 }
 
+type PostFeedRequest struct {
+	GroupID uuid.UUID `json:"group_id"`
+	Limit   int       `json:"limit"`
+	Offset  int       `json:"offset"`
+}
+
 func ParseJSON[T any](r *http.Request) (T, error) {
 	var data T
 
