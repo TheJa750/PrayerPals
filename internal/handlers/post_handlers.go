@@ -5,7 +5,6 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/TheJa750/PrayerPals/internal/database"
 	"github.com/google/uuid"
 )
 
@@ -17,6 +16,13 @@ func (a *APIConfig) CreatePostHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Extract group ID from URL parameters
+	groupID, err := parseUUIDPathParam(r, "group_id")
+	if err != nil {
+		http.Error(w, "Invalid group ID", http.StatusBadRequest)
+		return
+	}
+
 	// Parse the request body for post content
 	postReq, err := ParseJSON[PostRequest](r)
 	if err != nil {
@@ -24,34 +30,19 @@ func (a *APIConfig) CreatePostHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Validate user in group (future: add role check in helper function)
-	isMember, err := a.verifyUserInGroup(r.Context(), userID, postReq.GroupID)
-	if err != nil {
-		http.Error(w, "Failed to verify group membership", http.StatusInternalServerError)
-		return
-	}
-	if !isMember {
-		http.Error(w, "User not a member of the group", http.StatusForbidden)
+	if postReq.Content == "" {
+		http.Error(w, "Post content is required", http.StatusBadRequest)
 		return
 	}
 
-	// Create the post in the database
-	post, err := a.DBQueries.CreatePost(r.Context(), database.CreatePostParams{
-		GroupID: postReq.GroupID,
-		UserID:  userID,
-		Content: postReq.Content,
-	})
+	jsonPost, err := a.createPost(r.Context(), groupID, userID, postReq.Content)
 	if err != nil {
+		if errors.Is(err, ErrUserNotMember) {
+			http.Error(w, "User not a member of the group", http.StatusForbidden)
+			return
+		}
 		http.Error(w, "Failed to create post", http.StatusInternalServerError)
 		return
-	}
-
-	// Return the created post as JSON response
-	jsonPost := Post{
-		ID:      post.ID,
-		GroupID: post.GroupID,
-		UserID:  post.UserID,
-		Content: postReq.Content,
 	}
 
 	err = CreateJSONResponse(jsonPost, w, http.StatusCreated)
@@ -60,7 +51,7 @@ func (a *APIConfig) CreatePostHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Printf("User %v created post %v in group %v", userID, post.ID, postReq.GroupID)
+	log.Printf("User %v created post %v in group %v", userID, jsonPost.ID, jsonPost.GroupID)
 }
 
 func (a *APIConfig) CreateCommentHandler(w http.ResponseWriter, r *http.Request) {
@@ -72,71 +63,46 @@ func (a *APIConfig) CreateCommentHandler(w http.ResponseWriter, r *http.Request)
 	}
 
 	// Parse the request body for comment content
-	commentReq, err := ParseJSON[CommentRequest](r)
+	commentReq, err := ParseJSON[PostRequest](r)
 	if err != nil {
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
 	}
-	if commentReq.PostID == uuid.Nil {
-		http.Error(w, "Post ID is required", http.StatusBadRequest)
+	if commentReq.Content == "" {
+		http.Error(w, "Comment content is required", http.StatusBadRequest)
 		return
 	}
 
-	// Validate user in group (future: add role check in helper function)
-	isMember, err := a.verifyUserInGroup(r.Context(), userID, commentReq.GroupID)
+	// Extract group ID and post ID from URL parameters
+	groupID, err := parseUUIDPathParam(r, "group_id")
 	if err != nil {
-		http.Error(w, "Failed to verify group membership", http.StatusInternalServerError)
+		http.Error(w, "Invalid group ID", http.StatusBadRequest)
 		return
 	}
-	if !isMember {
-		http.Error(w, "User not a member of the group", http.StatusForbidden)
-		return
-	}
-
-	// Validate post in group
-	isValidPost, err := a.verifyPostInGroup(r.Context(), commentReq.PostID, commentReq.GroupID)
+	postID, err := parseUUIDPathParam(r, "post_id")
 	if err != nil {
-		http.Error(w, "Failed to verify post belongs to group", http.StatusInternalServerError)
-		return
-	}
-	if !isValidPost {
-		http.Error(w, "Post does not exist in group", http.StatusForbidden)
+		http.Error(w, "Invalid post ID", http.StatusBadRequest)
 		return
 	}
 
 	// Create the comment in the database
-	parentID := uuid.NullUUID{
-		UUID:  commentReq.PostID,
-		Valid: true,
-	}
-
-	comment, err := a.DBQueries.CreateComment(r.Context(), database.CreateCommentParams{
-		ParentPostID: parentID,
-		GroupID:      commentReq.GroupID,
-		UserID:       userID,
-		Content:      commentReq.Content,
-	})
+	comment, err := a.createComment(r.Context(), postID, userID, commentReq.Content)
 	if err != nil {
+		if errors.Is(err, ErrUserNotMember) {
+			http.Error(w, "User not a member of the group", http.StatusForbidden)
+			return
+		}
 		http.Error(w, "Failed to create comment", http.StatusInternalServerError)
 		return
 	}
 
-	// Return the created comment as JSON response
-	jsonComment := Comment{
-		ID:      comment.ID,
-		PostID:  comment.ParentPostID.UUID,
-		GroupID: commentReq.GroupID,
-		UserID:  userID,
-		Content: commentReq.Content,
-	}
-
-	err = CreateJSONResponse(jsonComment, w, http.StatusCreated)
+	err = CreateJSONResponse(comment, w, http.StatusCreated)
 	if err != nil {
 		http.Error(w, "Error creating JSON response", http.StatusInternalServerError)
 		return
 	}
 
-	log.Printf("User %v created comment %v on post %v in group %v", userID, comment.ID, commentReq.PostID, commentReq.GroupID)
+	log.Printf("User %v created comment %v on post %v in group %v", userID, comment.ID, postID, groupID)
 }
 
 func (a *APIConfig) DeletePostHandler(w http.ResponseWriter, r *http.Request) {
@@ -147,15 +113,20 @@ func (a *APIConfig) DeletePostHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Parse the request body for post ID
-	deleteReq, err := ParseJSON[DeletePostRequest](r)
+	// Get the post ID and group ID from URL parameters
+	groupID, err := parseUUIDPathParam(r, "group_id")
 	if err != nil {
-		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		http.Error(w, "Invalid group ID", http.StatusBadRequest)
+		return
+	}
+	postID, err := parseUUIDPathParam(r, "post_id")
+	if err != nil {
+		http.Error(w, "Invalid post ID", http.StatusBadRequest)
 		return
 	}
 
 	// Verify if the user can delete the post
-	err = a.verifyUserCanDeletePost(r.Context(), userID, deleteReq.PostID, deleteReq.GroupID)
+	err = a.verifyUserCanDeletePost(r.Context(), userID, postID, groupID)
 	if err != nil {
 		if errors.Is(err, ErrUserNotMember) || errors.Is(err, ErrUnauthorizedDelete) {
 			http.Error(w, err.Error(), http.StatusForbidden)
@@ -166,17 +137,17 @@ func (a *APIConfig) DeletePostHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Delete the post from the database
-	err = a.DBQueries.DeletePost(r.Context(), deleteReq.PostID)
+	err = a.DBQueries.DeletePost(r.Context(), postID)
 	if err != nil {
 		http.Error(w, "Failed to delete post", http.StatusInternalServerError)
 		return
 	}
 
-	log.Printf("User %v deleted post %v in group %v", userID, deleteReq.PostID, deleteReq.GroupID)
+	log.Printf("User %v deleted post %v in group %v", userID, postID, groupID)
 
 	// Delete comments associated with the post
 	parentID := uuid.NullUUID{
-		UUID:  deleteReq.PostID,
+		UUID:  postID,
 		Valid: true,
 	}
 
@@ -187,7 +158,7 @@ func (a *APIConfig) DeletePostHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusNoContent)
-	log.Printf("User %v deleted comments associated with post %v in group %v", userID, deleteReq.PostID, deleteReq.GroupID)
+	log.Printf("User %v deleted comments associated with post %v in group %v", userID, postID, groupID)
 }
 
 func (a *APIConfig) GetCommentsForPostHandler(w http.ResponseWriter, r *http.Request) {

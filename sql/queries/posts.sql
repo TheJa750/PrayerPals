@@ -1,12 +1,12 @@
 -- name: CreatePost :one
 INSERT INTO posts (user_id, group_id, content)
 VALUES ($1, $2, $3)
-RETURNING id, user_id, group_id;
+RETURNING *;
 
 -- name: CreateComment :one
 INSERT INTO posts (user_id, group_id, content, parent_post_id)
 VALUES ($1, $2, $3, $4)
-RETURNING id, parent_post_id;
+RETURNING *;
 
 -- name: GetPostByID :one
 SELECT * FROM posts WHERE id =  $1;

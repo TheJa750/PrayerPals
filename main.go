@@ -68,10 +68,10 @@ func main() {
 	router.HandleFunc("/api/groups/{group_id}/members/{user_id}", cfg.ModerateUserHandler).Methods("PUT") // Expecting JSON body for action and reason
 
 	// Post Handlers
-	router.HandleFunc("/api/posts", cfg.CreatePostHandler).Methods("POST")
-	router.HandleFunc("/api/posts", cfg.DeletePostHandler).Methods("DELETE") // Expecting JSON
-	router.HandleFunc("/api/comments", cfg.CreateCommentHandler).Methods("POST")
-	router.HandleFunc("/api/comments/{post_id}", cfg.GetCommentsForPostHandler).Methods("GET")
+	router.HandleFunc("/api/groups/{group_id}/posts", cfg.CreatePostHandler).Methods("POST")
+	router.HandleFunc("/api/groups/{group_id}/posts/{post_id}", cfg.DeletePostHandler).Methods("DELETE") // Expecting JSON
+	router.HandleFunc("/api/groups/{group_id}/posts/{post_id}/comments", cfg.CreateCommentHandler).Methods("POST")
+	router.HandleFunc("/api/groups/{group_id}/posts/{post_id}/comments", cfg.GetCommentsForPostHandler).Methods("GET")
 
 	log.Fatal(svr.ListenAndServe())
 }

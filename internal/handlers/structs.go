@@ -58,21 +58,15 @@ type Group struct {
 }
 
 type PostRequest struct {
-	GroupID uuid.UUID `json:"group_id"`
-	Content string    `json:"content"`
+	Content string `json:"content"`
 }
 
 type Post struct {
-	ID      uuid.UUID `json:"id"`
-	GroupID uuid.UUID `json:"group_id"`
-	UserID  uuid.UUID `json:"user_id"`
-	Content string    `json:"content"`
-}
-
-type CommentRequest struct {
-	PostID  uuid.UUID `json:"post_id"`
-	GroupID uuid.UUID `json:"group_id"`
-	Content string    `json:"content"`
+	ID        uuid.UUID `json:"id"`
+	GroupID   uuid.UUID `json:"group_id"`
+	UserID    uuid.UUID `json:"user_id"`
+	Content   string    `json:"content"`
+	CreatedAt string    `json:"created_at"`
 }
 
 type Comment struct {
@@ -88,11 +82,6 @@ type PromoteUserRequest struct {
 	GroupID      uuid.UUID `json:"group_id"`
 	TargetUserID uuid.UUID `json:"user_id"`
 	Role         string    `json:"role"` // e.g., "admin", "member"
-}
-
-type DeletePostRequest struct {
-	PostID  uuid.UUID `json:"post_id"`
-	GroupID uuid.UUID `json:"group_id"`
 }
 
 type PostFeedRequest struct {

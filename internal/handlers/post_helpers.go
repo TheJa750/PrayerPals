@@ -5,11 +5,96 @@ import (
 	"errors"
 	"time"
 
+	"github.com/TheJa750/PrayerPals/internal/database"
 	"github.com/google/uuid"
 )
 
 var ErrUnauthorizedDelete = errors.New("user is not authorized to delete this post")
+var ErrPostNotFound = errors.New("post not found")
 
+func (a *APIConfig) createPost(ctx context.Context, groupID, userID uuid.UUID, content string) (Post, error) {
+	// Validate user in group (future: add role check in helper function)
+	isMember, err := a.verifyUserInGroup(ctx, userID, groupID)
+	if err != nil {
+		return Post{}, err
+	}
+	if !isMember {
+		return Post{}, ErrUserNotMember
+	}
+
+	// Create the post in the database
+	post, err := a.DBQueries.CreatePost(ctx, database.CreatePostParams{
+		GroupID: groupID,
+		UserID:  userID,
+		Content: content,
+	})
+	if err != nil {
+		return Post{}, err
+	}
+
+	// Convert database post to API Post type
+	jsonPost := Post{
+		ID:        post.ID,
+		GroupID:   post.GroupID,
+		UserID:    post.UserID,
+		Content:   post.Content,
+		CreatedAt: post.CreatedAt.Time.Format(time.RFC3339),
+	}
+
+	return jsonPost, nil
+}
+
+func (a *APIConfig) createComment(ctx context.Context, postID, userID uuid.UUID, content string) (Comment, error) {
+	// Validate user in group (future: add role check in helper function)
+	post, err := a.DBQueries.GetPostByID(ctx, postID)
+	if err != nil {
+		return Comment{}, err
+	}
+
+	isMember, err := a.verifyUserInGroup(ctx, userID, post.GroupID)
+	if err != nil {
+		return Comment{}, err
+	}
+	if !isMember {
+		return Comment{}, ErrUserNotMember
+	}
+
+	// Validate post in group
+	isValidPost, err := a.verifyPostInGroup(ctx, postID, post.GroupID)
+	if err != nil {
+		return Comment{}, err
+	}
+	if !isValidPost {
+		return Comment{}, ErrPostNotFound
+	}
+
+	// Create the comment in the database
+	parentID := uuid.NullUUID{
+		UUID:  postID,
+		Valid: true,
+	}
+
+	comment, err := a.DBQueries.CreateComment(ctx, database.CreateCommentParams{
+		ParentPostID: parentID,
+		GroupID:      post.GroupID,
+		UserID:       userID,
+		Content:      content,
+	})
+	if err != nil {
+		return Comment{}, err
+	}
+
+	// Return the created comment as JSON response
+	jsonComment := Comment{
+		ID:      comment.ID,
+		PostID:  comment.ParentPostID.UUID,
+		GroupID: comment.GroupID,
+		UserID:  userID,
+		Content: comment.Content,
+	}
+
+	return jsonComment, nil
+}
 func (a *APIConfig) verifyUserCanDeletePost(ctx context.Context, userID, postID, groupID uuid.UUID) error {
 	// Verify if the user is a member of the group
 	isMember, err := a.verifyUserInGroup(ctx, userID, groupID)

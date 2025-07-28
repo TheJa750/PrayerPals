@@ -14,7 +14,7 @@ import (
 const createComment = `-- name: CreateComment :one
 INSERT INTO posts (user_id, group_id, content, parent_post_id)
 VALUES ($1, $2, $3, $4)
-RETURNING id, parent_post_id
+RETURNING id, user_id, group_id, content, created_at, updated_at, parent_post_id, is_deleted
 `
 
 type CreateCommentParams struct {
@@ -24,27 +24,31 @@ type CreateCommentParams struct {
 	ParentPostID uuid.NullUUID
 }
 
-type CreateCommentRow struct {
-	ID           uuid.UUID
-	ParentPostID uuid.NullUUID
-}
-
-func (q *Queries) CreateComment(ctx context.Context, arg CreateCommentParams) (CreateCommentRow, error) {
+func (q *Queries) CreateComment(ctx context.Context, arg CreateCommentParams) (Post, error) {
 	row := q.db.QueryRowContext(ctx, createComment,
 		arg.UserID,
 		arg.GroupID,
 		arg.Content,
 		arg.ParentPostID,
 	)
-	var i CreateCommentRow
-	err := row.Scan(&i.ID, &i.ParentPostID)
+	var i Post
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.GroupID,
+		&i.Content,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.ParentPostID,
+		&i.IsDeleted,
+	)
 	return i, err
 }
 
 const createPost = `-- name: CreatePost :one
 INSERT INTO posts (user_id, group_id, content)
 VALUES ($1, $2, $3)
-RETURNING id, user_id, group_id
+RETURNING id, user_id, group_id, content, created_at, updated_at, parent_post_id, is_deleted
 `
 
 type CreatePostParams struct {
@@ -53,16 +57,19 @@ type CreatePostParams struct {
 	Content string
 }
 
-type CreatePostRow struct {
-	ID      uuid.UUID
-	UserID  uuid.UUID
-	GroupID uuid.UUID
-}
-
-func (q *Queries) CreatePost(ctx context.Context, arg CreatePostParams) (CreatePostRow, error) {
+func (q *Queries) CreatePost(ctx context.Context, arg CreatePostParams) (Post, error) {
 	row := q.db.QueryRowContext(ctx, createPost, arg.UserID, arg.GroupID, arg.Content)
-	var i CreatePostRow
-	err := row.Scan(&i.ID, &i.UserID, &i.GroupID)
+	var i Post
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.GroupID,
+		&i.Content,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.ParentPostID,
+		&i.IsDeleted,
+	)
 	return i, err
 }
 
