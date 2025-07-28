@@ -10,6 +10,7 @@ import (
 	"github.com/TheJa750/PrayerPals/internal/database"
 	"github.com/TheJa750/PrayerPals/internal/handlers"
 	"github.com/TheJa750/PrayerPals/internal/middleware"
+	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
 
 	_ "github.com/lib/pq" // Import the PostgreSQL driver
@@ -24,11 +25,11 @@ func main() {
 		log.Fatalf("Error connecting to the database: %v", err)
 	}
 
-	mux := http.NewServeMux()
+	router := mux.NewRouter()
 
 	svr := http.Server{
 		Addr:              ":8080",
-		Handler:           middleware.LoggingMiddleware(mux),
+		Handler:           middleware.LoggingMiddleware(router),
 		ReadHeaderTimeout: 10 * time.Second,
 	}
 	log.Println("Starting server on :8080")
@@ -38,36 +39,35 @@ func main() {
 		JWTSecret: os.Getenv("JWT_SECRET"),
 	}
 
-	fileHandler := http.StripPrefix("/app/", http.FileServer(http.Dir("./internal/assets/")))
-
-	mux.Handle("/app/", fileHandler)
+	// File handler
+	router.PathPrefix("/app/").Handler(http.StripPrefix("/app/", http.FileServer(http.Dir("./internal/assets/"))))
 
 	// Server Admin Handlers
-	mux.HandleFunc("POST /admin/reset", cfg.ResetDatabase)
-	mux.HandleFunc("POST /admin/reset/users", cfg.ResetUsersOnly)
-	mux.HandleFunc("POST /admin/reset/groups", cfg.ResetGroupsOnly)
+	router.HandleFunc("/admin/reset", cfg.ResetDatabase).Methods("POST")
+	router.HandleFunc("/admin/reset/users", cfg.ResetUsersOnly).Methods("POST")
+	router.HandleFunc("/admin/reset/groups", cfg.ResetGroupsOnly).Methods("POST")
 
 	// Generic API Handlers
-	mux.HandleFunc("GET /api/health", handlers.HealthCheck)
+	router.HandleFunc("/api/health", handlers.HealthCheck).Methods("GET")
 
 	// User Account Handlers
-	mux.HandleFunc("POST /api/users", cfg.CreateUserHandler)
-	mux.HandleFunc("POST /api/login", cfg.LoginUserHandler)
-	mux.HandleFunc("POST /api/refresh", cfg.RefreshJWTHandler)
+	router.HandleFunc("/api/users", cfg.CreateUserHandler).Methods("POST")
+	router.HandleFunc("/api/login", cfg.LoginUserHandler).Methods("POST")
+	router.HandleFunc("/api/refresh", cfg.RefreshJWTHandler).Methods("POST")
 
 	// User Functions Handlers
-	mux.HandleFunc("POST /api/groups/join", cfg.JoinGroupHandler)    // Expecting query parameter ?group_id=UUID
-	mux.HandleFunc("DELETE /api/groups/join", cfg.LeaveGroupHandler) // Expecting query parameter ?group_id=UUID
-	mux.HandleFunc("GET /api/groups", cfg.GetGroupsForFeed)          // Fetch groups for user feed
+	router.HandleFunc("/api/groups/join", cfg.JoinGroupHandler).Methods("POST")    // Expecting query parameter ?group_id=UUID
+	router.HandleFunc("/api/groups/join", cfg.LeaveGroupHandler).Methods("DELETE") // Expecting query parameter ?group_id=UUID
+	router.HandleFunc("/api/groups", cfg.GetGroupsForFeed).Methods("GET")          // Fetch groups for user feed
 
 	// Group Handlers
-	mux.HandleFunc("POST /api/groups", cfg.CreateGroupHandler)
-	mux.HandleFunc("PUT /api/groups/promote", cfg.PromoteUserHandler)
+	router.HandleFunc("/api/groups", cfg.CreateGroupHandler).Methods("POST")
+	router.HandleFunc("/api/groups/promote", cfg.PromoteUserHandler).Methods("PUT")
 
 	// Post Handlers
-	mux.HandleFunc("POST /api/posts", cfg.CreatePostHandler)
-	mux.HandleFunc("DELETE /api/posts", cfg.DeletePostHandler) // Expecting JSON
-	mux.HandleFunc("POST /api/comments", cfg.CreateCommentHandler)
+	router.HandleFunc("/api/posts", cfg.CreatePostHandler).Methods("POST")
+	router.HandleFunc("/api/posts", cfg.DeletePostHandler).Methods("DELETE") // Expecting JSON
+	router.HandleFunc("/api/comments", cfg.CreateCommentHandler).Methods("POST")
 
 	log.Fatal(svr.ListenAndServe())
 }
