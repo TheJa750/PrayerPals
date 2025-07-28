@@ -56,13 +56,14 @@ func main() {
 	router.HandleFunc("/api/refresh", cfg.RefreshJWTHandler).Methods("POST")
 
 	// User Functions Handlers
-	router.HandleFunc("/api/groups/join", cfg.JoinGroupHandler).Methods("POST")    // Expecting query parameter ?group_id=UUID
-	router.HandleFunc("/api/groups/join", cfg.LeaveGroupHandler).Methods("DELETE") // Expecting query parameter ?group_id=UUID
-	router.HandleFunc("/api/groups", cfg.GetGroupsForFeed).Methods("GET")          // Fetch groups for user feed
+	router.HandleFunc("/api/groups/join/{group_id}", cfg.JoinGroupHandler).Methods("POST")
+	router.HandleFunc("/api/groups/join/{group_id}", cfg.LeaveGroupHandler).Methods("DELETE")
+	router.HandleFunc("/api/groups", cfg.GetGroupsForFeed).Methods("GET")
 
 	// Group Handlers
 	router.HandleFunc("/api/groups", cfg.CreateGroupHandler).Methods("POST")
 	router.HandleFunc("/api/groups/promote", cfg.PromoteUserHandler).Methods("PUT")
+	router.HandleFunc("/api/groups/{group_id}/posts", cfg.GetPostFeedHandler).Methods("GET") // Expecting query parameters ?limit=10&offset=0
 
 	// Post Handlers
 	router.HandleFunc("/api/posts", cfg.CreatePostHandler).Methods("POST")

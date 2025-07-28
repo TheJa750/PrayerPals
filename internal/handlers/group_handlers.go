@@ -151,15 +151,27 @@ func (a *APIConfig) GetPostFeedHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Parse the request body for post feed details
-	postFeedReq, err := ParseJSON[PostFeedRequest](r)
+	// Parse the group ID from the URL path
+	groupID, err := parseUUIDPathParam(r, "group_id")
 	if err != nil {
-		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		http.Error(w, "Invalid group ID", http.StatusBadRequest)
+		return
+	}
+
+	// Parse query parameters for pagination
+	limit, err := parseIntQueryParam(r, "limit", 10)
+	if err != nil {
+		http.Error(w, "Invalid limit parameter", http.StatusBadRequest)
+		return
+	}
+	offset, err := parseIntQueryParam(r, "offset", 0)
+	if err != nil {
+		http.Error(w, "Invalid offset parameter", http.StatusBadRequest)
 		return
 	}
 
 	// Perform checks and get posts for the group
-	posts, err := a.getPostFeed(r.Context(), userID, postFeedReq.GroupID, postFeedReq.Limit, postFeedReq.Offset)
+	posts, err := a.getPostFeed(r.Context(), userID, groupID, limit, offset)
 	if err != nil {
 		if errors.Is(err, ErrUserNotMember) {
 			http.Error(w, "User is not a member of the group", http.StatusForbidden)

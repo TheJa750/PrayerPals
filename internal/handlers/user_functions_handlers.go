@@ -6,7 +6,6 @@ import (
 	"net/http"
 
 	"github.com/TheJa750/PrayerPals/internal/database"
-	"github.com/google/uuid"
 )
 
 func (a *APIConfig) JoinGroupHandler(w http.ResponseWriter, r *http.Request) {
@@ -18,7 +17,7 @@ func (a *APIConfig) JoinGroupHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Parse the request URL for group ID
-	groupID, err := uuid.Parse(r.URL.Query().Get("group_id"))
+	groupID, err := parseUUIDPathParam(r, "group_id")
 	if err != nil {
 		http.Error(w, "Invalid group ID", http.StatusBadRequest)
 		return
@@ -47,7 +46,7 @@ func (a *APIConfig) LeaveGroupHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Parse the request URL for group ID
-	groupID, err := uuid.Parse(r.URL.Query().Get("group_id"))
+	groupID, err := parseUUIDPathParam(r, "group_id")
 	if err != nil {
 		http.Error(w, "Invalid group ID", http.StatusBadRequest)
 		return
