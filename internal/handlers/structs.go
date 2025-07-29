@@ -67,6 +67,7 @@ type Post struct {
 	UserID    uuid.UUID `json:"user_id"`
 	Content   string    `json:"content"`
 	CreatedAt string    `json:"created_at"`
+	Author string	`json:"author"` // Username of the post author
 }
 
 type Comment struct {

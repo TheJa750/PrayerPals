@@ -35,10 +35,14 @@ WHERE id = $1
 RETURNING *;
 
 -- name: GetPostsForFeed :many
-SELECT * FROM posts
-WHERE group_id = $1
-AND is_deleted = FALSE
-ORDER BY created_at DESC
+SELECT
+    posts.*,
+    users.username
+FROM posts
+INNER JOIN users ON posts.user_id = users.id
+WHERE posts.group_id = $1
+  AND posts.is_deleted = FALSE
+ORDER BY posts.created_at DESC
 LIMIT $2 OFFSET $3;
 
 -- name: ResetPosts :exec

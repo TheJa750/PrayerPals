@@ -7,6 +7,7 @@ package database
 
 import (
 	"context"
+	"database/sql"
 
 	"github.com/google/uuid"
 )
@@ -193,10 +194,14 @@ func (q *Queries) GetPostsByGroupID(ctx context.Context, groupID uuid.UUID) ([]P
 }
 
 const getPostsForFeed = `-- name: GetPostsForFeed :many
-SELECT id, user_id, group_id, content, created_at, updated_at, parent_post_id, is_deleted FROM posts
-WHERE group_id = $1
-AND is_deleted = FALSE
-ORDER BY created_at DESC
+SELECT
+    posts.id, posts.user_id, posts.group_id, posts.content, posts.created_at, posts.updated_at, posts.parent_post_id, posts.is_deleted,
+    users.username
+FROM posts
+INNER JOIN users ON posts.user_id = users.id
+WHERE posts.group_id = $1
+  AND posts.is_deleted = FALSE
+ORDER BY posts.created_at DESC
 LIMIT $2 OFFSET $3
 `
 
@@ -206,15 +211,27 @@ type GetPostsForFeedParams struct {
 	Offset  int32
 }
 
-func (q *Queries) GetPostsForFeed(ctx context.Context, arg GetPostsForFeedParams) ([]Post, error) {
+type GetPostsForFeedRow struct {
+	ID           uuid.UUID
+	UserID       uuid.UUID
+	GroupID      uuid.UUID
+	Content      string
+	CreatedAt    sql.NullTime
+	UpdatedAt    sql.NullTime
+	ParentPostID uuid.NullUUID
+	IsDeleted    sql.NullBool
+	Username     string
+}
+
+func (q *Queries) GetPostsForFeed(ctx context.Context, arg GetPostsForFeedParams) ([]GetPostsForFeedRow, error) {
 	rows, err := q.db.QueryContext(ctx, getPostsForFeed, arg.GroupID, arg.Limit, arg.Offset)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []Post
+	var items []GetPostsForFeedRow
 	for rows.Next() {
-		var i Post
+		var i GetPostsForFeedRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.UserID,
@@ -224,6 +241,7 @@ func (q *Queries) GetPostsForFeed(ctx context.Context, arg GetPostsForFeedParams
 			&i.UpdatedAt,
 			&i.ParentPostID,
 			&i.IsDeleted,
+			&i.Username,
 		); err != nil {
 			return nil, err
 		}
