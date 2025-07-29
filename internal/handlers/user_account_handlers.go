@@ -169,3 +169,29 @@ func (a *APIConfig) RefreshJWTHandler(w http.ResponseWriter, r *http.Request) {
 
 	log.Printf("Tokens refreshed for user %v", userID)
 }
+
+func (a *APIConfig) LogoutUserHandler(w http.ResponseWriter, r *http.Request) {
+	// Clear cookies to log out user
+	clearCookie := func(name string) {
+		http.SetCookie(w, &http.Cookie{
+			Name:     name,
+			Value:    "",
+			Path:     "/",
+			HttpOnly: true,
+			Secure:   false, // Set to true in production
+			SameSite: http.SameSiteStrictMode,
+			MaxAge:   -1, // Delete immediately
+		})
+	}
+	clearCookie("access_token")
+	clearCookie("refresh_token")
+
+	// Revoke refresh token in the database
+	token, err := r.Cookie("refresh_token")
+	if err == nil {
+		_ = a.DBQueries.RevokeUserToken(r.Context(), token.Value)
+	}
+
+	log.Println("User logged out successfully")
+	w.WriteHeader(http.StatusFound)
+}

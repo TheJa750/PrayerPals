@@ -1,49 +1,47 @@
-# PrayerPals
+# Svelte + Vite
 
-A simple web app for creating groups to post prayer requests.
+This template should help get you started developing with Svelte in Vite.
 
-## Current To-do/Roadmap
+## Recommended IDE Setup
 
-- [x] Get functional server base
-- [ ] **Build an API**
-  - [x] Add endpoint and handler for checking server health
-  - [x] Add endpoint and handler for creating user
-    - [x] Add auth package for password hashing
-  - [x] Add endpoint and handler for logging in
-    - [x] Add token logic to auth package
-  - [x] Add endpoint and handler for creating groups
-  - [x] Add endpoint and handler for joining groups
-  - [x] Add endpoint and handler for creating posts for specific groups
-    - [x] Add endpoint and handler for comments on specific posts
-  - [x] Add endpoint and handler for fetching groups (User Feed)
-  - [x] Add endpoint and handler for fetching posts (Group Feed)
-  - [x] Add endpoint and handler for fetching comments (Post Feed)
-  - [x] Add ability for group owners/admins to assign roles to users
-  - [x] Add ability for group owners/admins to delete posts
-  - [x] Add ability for group owners/admins to delete groups
-  - [x] Add ability for group owners/admins to kick/ban users
-  - [x] Add ability for users to leave groups
-    - [x] Add checks for leaving group as owner/admin
-    - [x] Add checks for leaving group as last user
-  - [ ] Add access/refresh token handling
-    - [x] Add ability to refresh access token if refresh token is valid
-    - [ ] Add endpoint/handler for revoking refresh token
-    - [ ] Add logic for revoking token on logout and password change
-  - [ ] Add ability to invite users to group
-- [ ] **Build a UI**
-  - [x] Set up project structure for static files (HTML, CSS, JS)
-  - [x] Create a simple homepage with project branding/message
-  - [x] Add user registration form
-    - [x] Connect to backend
-  - [x] Add login form
-    - [x] Connect to backend
-    - [x] Handle tokens
-  - [x] Dashboard: show user’s groups and navigation
-  - [x] Group pages: view group info and posts
-  - [x] Create post form (use API endpoint)
-  - [ ] UI for joining/leaving groups
-  - [ ] Admin controls for owners (assign roles, delete posts/groups)
-  - [ ] Display server/API error messages and loading states
-  - [x] Add styles for basic usability and mobile-responsiveness
-- [ ] **World Domination** *(if we get around to it)*
-- More coming soon...
+[VS Code](https://code.visualstudio.com/) + [Svelte](https://marketplace.visualstudio.com/items?itemName=svelte.svelte-vscode).
+
+## Need an official Svelte framework?
+
+Check out [SvelteKit](https://github.com/sveltejs/kit#readme), which is also powered by Vite. Deploy anywhere with its serverless-first approach and adapt to various platforms, with out of the box support for TypeScript, SCSS, and Less, and easily-added support for mdsvex, GraphQL, PostCSS, Tailwind CSS, and more.
+
+## Technical considerations
+
+**Why use this over SvelteKit?**
+
+- It brings its own routing solution which might not be preferable for some users.
+- It is first and foremost a framework that just happens to use Vite under the hood, not a Vite app.
+
+This template contains as little as possible to get started with Vite + Svelte, while taking into account the developer experience with regards to HMR and intellisense. It demonstrates capabilities on par with the other `create-vite` templates and is a good starting point for beginners dipping their toes into a Vite + Svelte project.
+
+Should you later need the extended capabilities and extensibility provided by SvelteKit, the template has been structured similarly to SvelteKit so that it is easy to migrate.
+
+**Why `global.d.ts` instead of `compilerOptions.types` inside `jsconfig.json` or `tsconfig.json`?**
+
+Setting `compilerOptions.types` shuts out all other types not explicitly listed in the configuration. Using triple-slash references keeps the default TypeScript setting of accepting type information from the entire workspace, while also adding `svelte` and `vite/client` type information.
+
+**Why include `.vscode/extensions.json`?**
+
+Other templates indirectly recommend extensions via the README, but this file allows VS Code to prompt the user to install the recommended extension upon opening the project.
+
+**Why enable `checkJs` in the JS template?**
+
+It is likely that most cases of changing variable types in runtime are likely to be accidental, rather than deliberate. This provides advanced typechecking out of the box. Should you like to take advantage of the dynamically-typed nature of JavaScript, it is trivial to change the configuration.
+
+**Why is HMR not preserving my local component state?**
+
+HMR state preservation comes with a number of gotchas! It has been disabled by default in both `svelte-hmr` and `@sveltejs/vite-plugin-svelte` due to its often surprising behavior. You can read the details [here](https://github.com/sveltejs/svelte-hmr/tree/master/packages/svelte-hmr#preservation-of-local-state).
+
+If you have state that's important to retain within a component, consider creating an external store which would not be replaced by HMR.
+
+```js
+// store.js
+// An extremely simple external store
+import { writable } from 'svelte/store'
+export default writable(0)
+```
