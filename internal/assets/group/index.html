@@ -1,0 +1,195 @@
+<html>
+
+<head>
+  <script src="../config.js"></script>
+  <title>Group Dashboard - Prayer Pals</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="../styles.css">
+  <style>
+    .logout-btn {
+      position: absolute;
+      top: 1.5rem;
+      right: 4rem;
+      z-index: 2;
+    }
+
+    .make-post-btn {
+      position: fixed;
+      bottom: 2rem;
+      left: 2rem;
+    }
+
+    .members-btn {
+      position: fixed;
+      bottom: 5.5rem;
+      left: 2rem;
+    }
+
+    .container {
+      position: relative;
+    }
+
+    /* Post card styles */
+    #postsContainer {
+      display: flex;
+      flex-direction: column;
+      gap: 1em;
+      padding: 0;
+    }
+
+    .post-card-link {
+      text-decoration: none;
+      color: inherit;
+    }
+
+    .post-card {
+      background: #fff;
+      border: 1px solid #ccc;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      padding: 1em;
+      transition: box-shadow 0.2s;
+      cursor: pointer;
+      display: block;
+    }
+
+    .post-card:hover {
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+      border-color: #888;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <button id="logoutBtn" class="logout-btn">Logout</button>
+    <button id="makePostBtn" class="make-post-btn">Make Post</button>
+    <button id="membersBtn" class="members-btn">Members</button>
+    <h1 id="groupTitle">Group</h1>
+    <div id="postsContainer" style="margin-top:2em;"></div>
+    <p id="postsMsg"></p>
+    <button id="backBtn" style="margin-top:2em;">Back</button>
+    <!-- Make Post Modal -->
+    <div id="makePostModal"
+      style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.4); z-index:10; align-items:center; justify-content:center;">
+      <div
+        style="background:#fff; padding:2rem; border-radius:8px; min-width:300px; max-width:90vw; position:relative;">
+        <h2>Share a Prayer Request</h2>
+        <form id="makePostForm">
+          <textarea name="content" placeholder="What's on your heart?" required
+            style="width:100%; margin-bottom:1em; min-height:80px;"></textarea>
+          <div style="text-align:center;">
+            <button type="submit">Post</button>
+            <button type="button" id="closePostModal" style="margin-left:1em;">Cancel</button>
+          </div>
+        </form>
+        <p id="makePostMsg"></p>
+      </div>
+    </div>
+  </div>
+  <script>
+    // Logout
+    document.getElementById('logoutBtn').onclick = function () {
+      localStorage.removeItem("user_id");
+      window.location.href = "../login/";
+    };
+    // Back to user dashboard
+    document.getElementById('backBtn').onclick = function () {
+      window.location.href = "../user?id=" + encodeURIComponent(localStorage.getItem("user_id"));
+    };
+    // Get group id from URL
+    const params = new URLSearchParams(window.location.search);
+    const groupId = params.get("id");
+
+    // Fetch group info and posts using cookies (no Authorization header)
+    async function loadGroup() {
+      const postsRes = await fetch(
+        window.API_BASE_URL + "/groups/" + encodeURIComponent(groupId) + "/posts?limit=10&offset=0",
+        { credentials: "include" }
+      );
+      const postsContainer = document.getElementById('postsContainer');
+      const postsMsg = document.getElementById('postsMsg');
+      postsContainer.innerHTML = '';
+      postsMsg.textContent = '';
+      if (postsRes.ok) {
+        const posts = await postsRes.json();
+        if (!posts || posts.length === 0) {
+          postsMsg.textContent = 'Please share your prayer requests';
+          postsMsg.style.textAlign = 'center';
+          return;
+        }
+        posts.forEach(post => {
+          const card = document.createElement('div');
+          card.className = 'post-card';
+          card.innerHTML = `
+              <strong>${post.author || "Anonymous"}</strong><br>
+              <span>${post.content}</span>
+            `;
+          postsContainer.appendChild(card);
+        });
+      } else {
+        postsMsg.textContent = 'Failed to load posts.';
+        postsMsg.style.color = 'red';
+        postsMsg.style.textAlign = 'center';
+      }
+    }
+
+    // Optionally fetch group name if you have an endpoint for it
+    async function loadGroupName() {
+      const res = await fetch(
+        window.API_BASE_URL + "/groups/" + encodeURIComponent(groupId),
+        { credentials: "include" }
+      );
+      if (res.ok) {
+        const group = await res.json();
+        document.getElementById('groupTitle').textContent = group.name;
+      }
+    }
+
+    loadGroupName();
+    loadGroup();
+  </script>
+  <script>
+    // Show the make post modal
+    document.getElementById('makePostBtn').onclick = function () {
+      document.getElementById('makePostModal').style.display = 'flex';
+    };
+    // Hide the modal
+    document.getElementById('closePostModal').onclick = function () {
+      document.getElementById('makePostModal').style.display = 'none';
+      document.getElementById('makePostForm').reset();
+      document.getElementById('makePostMsg').textContent = '';
+    };
+    // Handle form submission
+    document.getElementById('makePostForm').addEventListener('submit', async function (e) {
+      e.preventDefault();
+      const form = e.target;
+      const content = form.content.value;
+      const msg = document.getElementById('makePostMsg');
+      try {
+        const response = await fetch(window.API_BASE_URL + "/groups/" + encodeURIComponent(groupId) + "/posts", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ content }),
+          credentials: "include"
+        });
+        if (response.ok) {
+          msg.textContent = "Posted!";
+          msg.style.color = "green";
+          form.reset();
+          document.getElementById('makePostModal').style.display = 'none';
+          // Reload posts
+          loadGroup();
+        } else {
+          const error = await response.text();
+          msg.textContent = "Failed: " + error;
+          msg.style.color = "red";
+        }
+      } catch (err) {
+        msg.textContent = "Failed: " + err;
+        msg.style.color = "red";
+      }
+    });
+  </script>
+</body>

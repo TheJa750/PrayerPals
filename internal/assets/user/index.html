@@ -1,0 +1,193 @@
+<html>
+
+<head>
+  <script src="../config.js"></script>
+  <title>User Dashboard - Prayer Pals</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="../styles.css">
+  <style>
+    .logout-btn {
+      position: absolute;
+      top: 1.5rem;
+      right: 1rem;
+    }
+
+    .make-group-btn {
+      position: fixed;
+      bottom: 2rem;
+      left: 2rem;
+    }
+
+    .search-bar-container {
+      width: 100%;
+      display: flex;
+      justify-content: left;
+      margin-bottom: 1.5rem;
+    }
+
+    .search-bar-container input[type="text"] {
+      width: 300px;
+      padding: 0.5em;
+      border-radius: 4px;
+      border: 1px solid #bbb;
+      font-size: 1em;
+    }
+
+    .container {
+      position: relative;
+    }
+
+    /* Group card styles */
+    #groupsList {
+      display: flex;
+      flex-direction: column;
+      gap: 1em;
+      padding: 0;
+    }
+
+    .group-card-link {
+      text-decoration: none;
+      color: inherit;
+    }
+
+    .group-card {
+      background: #fff;
+      border: 1px solid #ccc;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      padding: 1em;
+      transition: box-shadow 0.2s;
+      cursor: pointer;
+      display: block;
+    }
+
+    .group-card:hover {
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+      border-color: #888;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <button id="logoutBtn" class="logout-btn">Logout</button>
+    <div class="search-bar-container">
+      <input type="text" id="groupSearch" placeholder="Search for a group...">
+    </div>
+    <h1>Welcome to Your Dashboard</h1>
+    <div id="groupsContainer">
+      <h2>Your Groups</h2>
+      <div id="groupsList"></div>
+      <p id="groupsMsg"></p>
+    </div>
+    <button id="makeGroupBtn" class="make-group-btn">Make Group</button>
+    <p><a href="../index.html">Back to Home</a></p>
+    <div id="makeGroupModal"
+      style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.4); z-index:10; align-items:center; justify-content:center;">
+      <div
+        style="background:#fff; padding:2rem; border-radius:8px; min-width:300px; max-width:90vw; position:relative;">
+        <h2>Create Group</h2>
+        <form id="makeGroupForm">
+          <input type="text" name="name" placeholder="Group Name" required style="width:100%; margin-bottom:1em;">
+          <input type="text" name="description" placeholder="Description" required
+            style="width:100%; margin-bottom:1em;">
+          <div style="text-align:center;">
+            <button type="submit">Create</button>
+            <button type="button" id="closeGroupModal" style="margin-left:1em;">Cancel</button>
+          </div>
+        </form>
+        <p id="makeGroupMsg"></p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('logoutBtn').onclick = function () {
+      localStorage.removeItem("user_id");
+      window.location.href = "../login/";
+    };
+
+    // Load and display user's groups
+    async function loadGroups() {
+      const groupsList = document.getElementById('groupsList');
+      const groupsMsg = document.getElementById('groupsMsg');
+      groupsList.innerHTML = '';
+      groupsMsg.textContent = '';
+      try {
+        const response = await fetch(window.API_BASE_URL + "/groups", {
+          method: "GET",
+          credentials: "include"
+        });
+        if (response.ok) {
+          const groups = await response.json();
+          if (groups.length === 0) {
+            groupsMsg.textContent = "You are not in any groups yet.";
+            return;
+          }
+          groups.forEach(group => {
+            const link = document.createElement('a');
+            link.className = 'group-card-link';
+            link.href = "../group?id=" + encodeURIComponent(group.id);
+            link.innerHTML = `
+                <div class="group-card">
+                  <strong>${group.name}</strong><br>
+                  ${group.description}
+                </div>
+              `;
+            groupsList.appendChild(link);
+          });
+        } else {
+          groupsMsg.textContent = "Failed to load groups.";
+          groupsMsg.style.color = "red";
+        }
+      } catch (err) {
+        groupsMsg.textContent = "Error: " + err;
+        groupsMsg.style.color = "red";
+      }
+    }
+    window.addEventListener('DOMContentLoaded', loadGroups);
+  </script>
+  <script>
+    // Show modal
+    document.getElementById('makeGroupBtn').onclick = function () {
+      document.getElementById('makeGroupModal').style.display = 'flex';
+    };
+    // Hide modal
+    document.getElementById('closeGroupModal').onclick = function () {
+      document.getElementById('makeGroupModal').style.display = 'none';
+      document.getElementById('makeGroupForm').reset();
+      document.getElementById('makeGroupMsg').textContent = '';
+    };
+    // Handle form submission
+    document.getElementById('makeGroupForm').addEventListener('submit', async function (e) {
+      e.preventDefault();
+      const form = e.target;
+      const name = form.name.value;
+      const description = form.description.value;
+      const msg = document.getElementById('makeGroupMsg');
+      try {
+        const response = await fetch(window.API_BASE_URL + "/groups", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name, description }),
+          credentials: "include"
+        });
+        if (response.ok) {
+          const result = await response.json();
+          localStorage.setItem("group_id", result.id);
+          window.location.href = "../group?id=" + encodeURIComponent(result.id);
+        } else {
+          const error = await response.text();
+          msg.textContent = "Failed: " + error;
+          msg.style.color = "red";
+        }
+      } catch (err) {
+        msg.textContent = "Failed: " + err;
+        msg.style.color = "red";
+      }
+    });
+  </script>
+</body>
+
+</html>

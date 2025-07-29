@@ -31,19 +31,19 @@ A simple web app for creating groups to post prayer requests.
     - [ ] Add logic for revoking token on logout and password change
   - [ ] Add ability to invite users to group
 - [ ] **Build a UI**
-  - [ ] Set up project structure for static files (HTML, CSS, JS)
-  - [ ] Create a simple homepage with project branding/message
-  - [ ] Add user registration form
-    - [ ] Connect to backend
-  - [ ] Add login form
-    - [ ] Connect to backend
-    - [ ] Handle tokens
-  - [ ] Dashboard: show user’s groups and navigation
-  - [ ] Group pages: view group info and posts
-  - [ ] Create post form (use API endpoint)
+  - [x] Set up project structure for static files (HTML, CSS, JS)
+  - [x] Create a simple homepage with project branding/message
+  - [x] Add user registration form
+    - [x] Connect to backend
+  - [x] Add login form
+    - [x] Connect to backend
+    - [x] Handle tokens
+  - [x] Dashboard: show user’s groups and navigation
+  - [x] Group pages: view group info and posts
+  - [x] Create post form (use API endpoint)
   - [ ] UI for joining/leaving groups
   - [ ] Admin controls for owners (assign roles, delete posts/groups)
   - [ ] Display server/API error messages and loading states
-  - [ ] Add styles for basic usability and mobile-responsiveness
+  - [x] Add styles for basic usability and mobile-responsiveness
 - [ ] **World Domination** *(if we get around to it)*
 - More coming soon...
