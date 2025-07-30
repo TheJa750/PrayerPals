@@ -29,7 +29,7 @@ func main() {
 
 	svr := http.Server{
 		Addr:              ":8080",
-		Handler:           middleware.LoggingMiddleware(router),
+		Handler:           middleware.CorsMiddleware(middleware.LoggingMiddleware(router)),
 		ReadHeaderTimeout: 10 * time.Second,
 	}
 	log.Println("Starting server on :8080")
