@@ -1,14 +1,10 @@
 package handlers
 
 import (
-	"database/sql"
 	"errors"
 	"log"
 	"net/http"
 	"strings"
-
-	"github.com/TheJa750/PrayerPals/internal/database"
-	"github.com/google/uuid"
 )
 
 func (a *APIConfig) CreateGroupHandler(w http.ResponseWriter, r *http.Request) {
@@ -28,17 +24,6 @@ func (a *APIConfig) CreateGroupHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Setting up query parameters
-	// Description can be null, so we use sql.NullString
-	valid := true
-	if groupReq.Description == "" {
-		valid = false
-	}
-
-	description := sql.NullString{
-		String: groupReq.Description,
-		Valid:  valid,
-	}
 	// Validate JWT and get user ID
 	userID, err := a.getUserIDFromToken(r)
 	if err != nil {
@@ -47,41 +32,31 @@ func (a *APIConfig) CreateGroupHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Create the group in the database
-	group, err := a.DBQueries.CreateGroup(r.Context(), database.CreateGroupParams{
-		Name:        groupReq.Name,
-		Description: description,
-		OwnerID: uuid.NullUUID{
-			UUID:  userID,
-			Valid: true,
-		},
-	})
+	// Create JSON response
+	group, err := a.createGroup(r.Context(), userID, groupReq)
 	if err != nil {
+		log.Printf("Error creating group: %v", err)
 		http.Error(w, "Error creating group", http.StatusInternalServerError)
 		return
 	}
 
-	// Add user to group
-	err = a.DBQueries.AddUserToGroup(r.Context(), database.AddUserToGroupParams{
-		UserID:  userID,
-		GroupID: group.ID,
-		Role:    "admin", // Group creator is admin
-	})
+	// Add user to the group as admin
+	err = a.joinGroup(r.Context(), userID, group.ID, "admin")
 	if err != nil {
 		log.Printf("Error adding user to group: %v", err)
-		http.Error(w, "Error adding user to group", http.StatusInternalServerError)
+
+		// if adding user fails, we delete group because no way to access it
+		if deleteErr := a.deleteGroup(r.Context(), group.ID); deleteErr != nil {
+			log.Printf("Error deleting group after failed join: %v", deleteErr)
+			http.Error(w, "Error deleting group after failed join", http.StatusInternalServerError)
+			return
+		}
+
+		http.Error(w, "Error adding user to group, group deleted", http.StatusInternalServerError)
 		return
 	}
 
-	// Create JSON response
-	jsonGroup := Group{
-		ID:          group.ID,
-		Name:        group.Name,
-		Description: group.Description.String,
-		OwnerID:     group.OwnerID.UUID,
-	}
-
-	if err := CreateJSONResponse(jsonGroup, w, http.StatusCreated); err != nil {
+	if err := CreateJSONResponse(group, w, http.StatusCreated); err != nil {
 		log.Printf("Error creating JSON response: %v", err)
 		return
 	}

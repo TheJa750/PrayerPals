@@ -2,15 +2,16 @@ package handlers
 
 import (
 	"context"
+	"database/sql"
 	"errors"
-	"net/http"
+	"fmt"
+	"math/rand"
 	"slices"
-	"strconv"
+	"strings"
 	"time"
 
 	"github.com/TheJa750/PrayerPals/internal/database"
 	"github.com/google/uuid"
-	"github.com/gorilla/mux"
 )
 
 var ErrUserNotMember = errors.New("user is not a member of the group")
@@ -110,12 +111,12 @@ func (a *APIConfig) getPostFeed(ctx context.Context, userID, groupID uuid.UUID, 
 	jsonPosts := make([]Post, len(posts))
 	for i, post := range posts {
 		jsonPosts[i] = Post{
-			ID:      post.ID,
-			GroupID: post.GroupID,
-			UserID:  post.UserID,
-			Content: post.Content,
+			ID:        post.ID,
+			GroupID:   post.GroupID,
+			UserID:    post.UserID,
+			Content:   post.Content,
 			CreatedAt: post.CreatedAt.Time.Format(time.RFC3339),
-			Author: post.Username,
+			Author:    post.Username,
 		}
 	}
 
@@ -137,30 +138,6 @@ func (a *APIConfig) isAdmin(ctx context.Context, userID, groupID uuid.UUID) erro
 	}
 
 	return nil
-}
-
-func parseIntQueryParam(r *http.Request, key string, defaultVal int) (int, error) {
-	valStr := r.URL.Query().Get(key)
-	if valStr == "" {
-		return defaultVal, nil
-	}
-	i, err := strconv.Atoi(valStr)
-	if err != nil {
-		return defaultVal, err
-	}
-	return i, nil
-}
-
-func parseUUIDPathParam(r *http.Request, key string) (uuid.UUID, error) {
-	valStr := mux.Vars(r)[key]
-	if valStr == "" {
-		return uuid.Nil, ErrInvalidID
-	}
-	id, err := uuid.Parse(valStr)
-	if err != nil {
-		return uuid.Nil, err
-	}
-	return id, nil
 }
 
 func (a *APIConfig) moderateUser(ctx context.Context, groupID, targetID, adminID uuid.UUID, action, reason string) error {
@@ -223,4 +200,116 @@ func (a *APIConfig) promoteUser(ctx context.Context, groupID, userID uuid.UUID, 
 		GroupID: groupID,
 		Role:    role,
 	})
+}
+
+func generateInviteCode(customPrefix string) string {
+	// Set some defaults
+	charset := "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+	prefix := ""
+	randomChars := 3
+
+	// "" means use default prefix and 6 random characters
+	if customPrefix == "" {
+		prefix = "INV"
+		randomChars = 6
+	} else {
+		if len(customPrefix) > 6 {
+			customPrefix = customPrefix[:6] // Truncate to 6 characters
+		}
+		prefix = strings.ToUpper(customPrefix)
+		if len(prefix) < 6 {
+			randomChars = 9 - len(prefix) // Ensure total length is 9
+		}
+	}
+
+	suffix := make([]byte, randomChars)
+	for i := range suffix {
+		suffix[i] = charset[rand.Intn(len(charset))]
+	}
+
+	return prefix + string(suffix)
+
+}
+
+func (a *APIConfig) createGroup(ctx context.Context, userID uuid.UUID, req GroupRequest) (Group, error) {
+	// Setting up query parameters
+	// Description can be null, so we use sql.NullString
+	valid := true
+	if req.Description == "" {
+		valid = false
+	}
+
+	// Create the group in the database
+	group, err := a.DBQueries.CreateGroup(ctx, database.CreateGroupParams{
+		Name: req.Name,
+		Description: sql.NullString{
+			String: req.Description,
+			Valid:  valid,
+		},
+		OwnerID: uuid.NullUUID{
+			UUID:  userID,
+			Valid: true,
+		},
+		InviteCode: generateInviteCode(""), // Generate a random invite code in the form of "INVxxxxxx"
+	})
+	if err != nil {
+		if strings.Contains(err.Error(), "invite_code") && strings.Contains(err.Error(), "unique") {
+			return Group{}, fmt.Errorf("invite code collision, please try again")
+		}
+		return Group{}, err
+	}
+
+	jsonGroup := Group{
+		ID:          group.ID,
+		Name:        group.Name,
+		Description: group.Description.String,
+		OwnerID:     group.OwnerID.UUID,
+		InviteCode:  group.InviteCode,
+	}
+
+	return jsonGroup, nil
+}
+
+func (a *APIConfig) deleteGroup(ctx context.Context, groupID uuid.UUID) error {
+	// Assumes the group exists and the user has permission to delete it
+	err := a.DBQueries.DeleteGroup(ctx, groupID)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (a *APIConfig) getGroupByInviteCode(ctx context.Context, inviteCode string) (Group, error) {
+	// Fetch the group by invite code
+	group, err := a.DBQueries.GetGroupByInviteCode(ctx, inviteCode)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return Group{}, fmt.Errorf("group not found for invite code: %s", inviteCode)
+		}
+		return Group{}, fmt.Errorf("error retrieving group by invite code: %w", err)
+	}
+
+	jsonGroup := Group{
+		ID:          group.ID,
+		Name:        group.Name,
+		Description: group.Description.String,
+		OwnerID:     group.OwnerID.UUID,
+		InviteCode:  group.InviteCode,
+	}
+
+	return jsonGroup, nil
+}
+
+func (a *APIConfig) updateGroupInviteCode(ctx context.Context, groupID uuid.UUID, newInviteCode string) error {
+	// Update the invite code for the group
+	err := a.DBQueries.UpdateGroupInviteCode(ctx, database.UpdateGroupInviteCodeParams{
+		ID:         groupID,
+		InviteCode: newInviteCode,
+	})
+	if err != nil {
+		return fmt.Errorf("error updating group invite code: %w", err)
+	}
+
+	return nil
 }

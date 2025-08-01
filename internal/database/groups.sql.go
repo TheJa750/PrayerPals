@@ -30,19 +30,25 @@ func (q *Queries) AddUserToGroup(ctx context.Context, arg AddUserToGroupParams) 
 }
 
 const createGroup = `-- name: CreateGroup :one
-INSERT INTO groups (name, description, owner_id)
-VALUES ($1, $2, $3)
-RETURNING id, name, description, created_at, updated_at, owner_id
+INSERT INTO groups (name, description, owner_id, invite_code)
+VALUES ($1, $2, $3, $4)
+RETURNING id, name, description, created_at, updated_at, owner_id, invite_code
 `
 
 type CreateGroupParams struct {
 	Name        string
 	Description sql.NullString
 	OwnerID     uuid.NullUUID
+	InviteCode  string
 }
 
 func (q *Queries) CreateGroup(ctx context.Context, arg CreateGroupParams) (Group, error) {
-	row := q.db.QueryRowContext(ctx, createGroup, arg.Name, arg.Description, arg.OwnerID)
+	row := q.db.QueryRowContext(ctx, createGroup,
+		arg.Name,
+		arg.Description,
+		arg.OwnerID,
+		arg.InviteCode,
+	)
 	var i Group
 	err := row.Scan(
 		&i.ID,
@@ -51,6 +57,7 @@ func (q *Queries) CreateGroup(ctx context.Context, arg CreateGroupParams) (Group
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.OwnerID,
+		&i.InviteCode,
 	)
 	return i, err
 }
@@ -66,7 +73,7 @@ func (q *Queries) DeleteGroup(ctx context.Context, id uuid.UUID) error {
 }
 
 const getGroupByID = `-- name: GetGroupByID :one
-SELECT id, name, description, created_at, updated_at, owner_id
+SELECT id, name, description, created_at, updated_at, owner_id, invite_code
 FROM groups
 WHERE id = $1
 `
@@ -81,6 +88,27 @@ func (q *Queries) GetGroupByID(ctx context.Context, id uuid.UUID) (Group, error)
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.OwnerID,
+		&i.InviteCode,
+	)
+	return i, err
+}
+
+const getGroupByInviteCode = `-- name: GetGroupByInviteCode :one
+SELECT id, name, description, created_at, updated_at, owner_id, invite_code FROM groups
+WHERE invite_code = $1
+`
+
+func (q *Queries) GetGroupByInviteCode(ctx context.Context, inviteCode string) (Group, error) {
+	row := q.db.QueryRowContext(ctx, getGroupByInviteCode, inviteCode)
+	var i Group
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Description,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.OwnerID,
+		&i.InviteCode,
 	)
 	return i, err
 }
@@ -198,5 +226,21 @@ TRUNCATE TABLE groups CASCADE
 
 func (q *Queries) ResetGroups(ctx context.Context) error {
 	_, err := q.db.ExecContext(ctx, resetGroups)
+	return err
+}
+
+const updateGroupInviteCode = `-- name: UpdateGroupInviteCode :exec
+UPDATE groups
+SET invite_code = $2
+WHERE id = $1
+`
+
+type UpdateGroupInviteCodeParams struct {
+	ID         uuid.UUID
+	InviteCode string
+}
+
+func (q *Queries) UpdateGroupInviteCode(ctx context.Context, arg UpdateGroupInviteCodeParams) error {
+	_, err := q.db.ExecContext(ctx, updateGroupInviteCode, arg.ID, arg.InviteCode)
 	return err
 }

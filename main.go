@@ -56,7 +56,7 @@ func main() {
 	router.HandleFunc("/api/refresh", cfg.RefreshJWTHandler).Methods("POST")
 
 	// User Functions Handlers
-	router.HandleFunc("/api/groups/{group_id}/join", cfg.JoinGroupHandler).Methods("POST")
+	router.HandleFunc("/api/groups/{invite_code}/join", cfg.JoinGroupHandler).Methods("POST")
 	router.HandleFunc("/api/groups/{group_id}/join", cfg.LeaveGroupHandler).Methods("DELETE")
 	router.HandleFunc("/api/groups", cfg.GetGroupsForFeed).Methods("GET")
 

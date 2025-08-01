@@ -30,6 +30,12 @@ A simple web app for creating groups to post prayer requests.
     - [ ] Add endpoint/handler for revoking refresh token
     - [ ] Add logic for revoking token on logout and password change
   - [ ] Add ability to invite users to group
+    - [x] Add custom invite code logic
+    - [x] Add query for looking up group by invite code/edit join group logic to accomodate
+    - [ ] Add method for group admins to send invites to specific users (email is unique)
+  - [ ] Add Account features
+    - [ ] Add endpoint for changing username
+    - [ ] Add endpoint for changing password
 - [ ] **Build a UI**
   - [x] Set up project structure for static files (HTML, CSS, JS)
   - [x] Create a simple homepage with project branding/message

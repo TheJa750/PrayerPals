@@ -1,6 +1,6 @@
 -- name: CreateGroup :one
-INSERT INTO groups (name, description, owner_id)
-VALUES ($1, $2, $3)
+INSERT INTO groups (name, description, owner_id, invite_code)
+VALUES ($1, $2, $3, $4)
 RETURNING *;
 
 -- name: GetGroupByID :one
@@ -38,3 +38,12 @@ WHERE user_id = $1;
 SELECT user_id, role
 FROM users_groups
 WHERE group_id = $1 AND role != 'member';
+
+-- name: GetGroupByInviteCode :one
+SELECT * FROM groups
+WHERE invite_code = $1;
+
+-- name: UpdateGroupInviteCode :exec
+UPDATE groups
+SET invite_code = $2
+WHERE id = $1;

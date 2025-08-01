@@ -95,6 +95,7 @@ func (a *APIConfig) createComment(ctx context.Context, postID, userID uuid.UUID,
 
 	return jsonComment, nil
 }
+
 func (a *APIConfig) verifyUserCanDeletePost(ctx context.Context, userID, postID, groupID uuid.UUID) error {
 	// Verify if the user is a member of the group
 	isMember, err := a.verifyUserInGroup(ctx, userID, groupID)

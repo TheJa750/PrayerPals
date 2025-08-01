@@ -55,6 +55,7 @@ type Group struct {
 	Name        string    `json:"name"`
 	Description string    `json:"description"`
 	OwnerID     uuid.UUID `json:"owner_id"`
+	InviteCode  string    `json:"invite_code"` // New field for invite code
 }
 
 type PostRequest struct {
@@ -67,7 +68,7 @@ type Post struct {
 	UserID    uuid.UUID `json:"user_id"`
 	Content   string    `json:"content"`
 	CreatedAt string    `json:"created_at"`
-	Author string	`json:"author"` // Username of the post author
+	Author    string    `json:"author"` // Username of the post author
 }
 
 type Comment struct {

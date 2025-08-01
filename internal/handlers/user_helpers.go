@@ -77,3 +77,17 @@ func (a *APIConfig) verifyPostInGroup(ctx context.Context, postID, groupID uuid.
 
 	return true, nil
 }
+
+func (a *APIConfig) joinGroup(ctx context.Context, userID, groupID uuid.UUID, role string) error {
+	// Expecting to have already checked if user is in group
+	err := a.DBQueries.AddUserToGroup(ctx, database.AddUserToGroupParams{
+		UserID:  userID,
+		GroupID: groupID,
+		Role:    role,
+	})
+	if err != nil {
+		return fmt.Errorf("joinGroup: error adding user to group: %w", err)
+	}
+
+	return nil
+}
