@@ -41,7 +41,7 @@ func (a *APIConfig) CreateGroupHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Add user to the group as admin
-	err = a.joinGroup(r.Context(), userID, group.ID, "admin")
+	_, err = a.joinGroup(r.Context(), userID, "admin", group.InviteCode)
 	if err != nil {
 		log.Printf("Error adding user to group: %v", err)
 

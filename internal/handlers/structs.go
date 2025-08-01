@@ -95,6 +95,13 @@ type ModerateUserRequest struct {
 	Reason string `json:"reason"` // Reason for the action
 }
 
+type UserJoinGroup struct {
+	UserID    uuid.UUID `json:"user_id"`
+	GroupID   uuid.UUID `json:"group_id"`
+	GroupName string    `json:"group_name"`
+	Role      string    `json:"role"` // e.g., "admin", "member"
+}
+
 func ParseJSON[T any](r *http.Request) (T, error) {
 	var data T
 

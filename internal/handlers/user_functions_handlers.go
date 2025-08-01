@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"database/sql"
 	"errors"
 	"log"
 	"net/http"
@@ -24,50 +23,20 @@ func (a *APIConfig) JoinGroupHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Fetch group by invite code
-	group, err := a.DBQueries.GetGroupByInviteCode(r.Context(), invCode)
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			http.Error(w, "Group not found for invite code", http.StatusNotFound)
-			return
-		}
-		log.Printf("Error fetching group by invite code: %v", err)
-		http.Error(w, "Failed to fetch group by invite code", http.StatusInternalServerError)
-		return
-	}
-
-	// Verify user is not already a member
-	isMember, err := a.verifyUserInGroup(r.Context(), userID, group.ID)
-	if err != nil {
-		log.Printf("Error verifying user in group: %v", err)
-		http.Error(w, "Failed to verify group membership", http.StatusInternalServerError)
-		return
-	}
-	if isMember {
-		http.Error(w, "User is already a member of the group", http.StatusConflict)
-		return
-	}
-
 	// Add user to the group in database
-	err = a.joinGroup(r.Context(), userID, group.ID, "member")
+	response, err := a.joinGroup(r.Context(), userID, "member", invCode)
 	if err != nil {
 		log.Printf("Error adding user to group: %v", err)
 		http.Error(w, "Error adding user to group", http.StatusInternalServerError)
 		return
 	}
 
-	// Success response with group info
-	response := map[string]interface{}{
-		"message":    "Successfully joined group",
-		"group_name": group.Name,
-		"group_id":   group.ID,
-	}
 	if err := CreateJSONResponse(response, w, http.StatusOK); err != nil {
 		log.Printf("Error creating JSON response: %v", err)
 		return
 	}
 
-	log.Printf("User %v joined group %v successfully", userID, group.ID)
+	log.Printf("User %v joined group %v successfully", userID, response.GroupID)
 }
 
 func (a *APIConfig) LeaveGroupHandler(w http.ResponseWriter, r *http.Request) {

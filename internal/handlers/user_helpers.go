@@ -2,13 +2,21 @@ package handlers
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"fmt"
+	"log"
 	"net/http"
 	"time"
 
 	"github.com/TheJa750/PrayerPals/internal/auth"
 	"github.com/TheJa750/PrayerPals/internal/database"
 	"github.com/google/uuid"
+)
+
+var (
+	ErrNoGroupFound = errors.New("no group found for the provided invite code")
+	ErrUserIsMember = errors.New("user is already a member of the group")
 )
 
 func (a *APIConfig) issueTokens(user database.User, jwtSecret string, activeTime time.Duration, ctx context.Context) (string, string, error) {
@@ -78,16 +86,42 @@ func (a *APIConfig) verifyPostInGroup(ctx context.Context, postID, groupID uuid.
 	return true, nil
 }
 
-func (a *APIConfig) joinGroup(ctx context.Context, userID, groupID uuid.UUID, role string) error {
-	// Expecting to have already checked if user is in group
-	err := a.DBQueries.AddUserToGroup(ctx, database.AddUserToGroupParams{
+func (a *APIConfig) joinGroup(ctx context.Context, userID uuid.UUID, role, inviteCode string) (UserJoinGroup, error) {
+	// Fetch group by invite code
+	group, err := a.getGroupByInviteCode(ctx, inviteCode)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return UserJoinGroup{}, ErrNoGroupFound
+		}
+		return UserJoinGroup{}, fmt.Errorf("joinGroup: error retrieving group by invite code: %w", err)
+	}
+
+	// Verify user is not already a member
+	isMember, err := a.verifyUserInGroup(ctx, userID, group.ID)
+	if err != nil {
+		log.Printf("Error verifying user in group: %v", err)
+		return UserJoinGroup{}, fmt.Errorf("joinGroup: error verifying user in group: %w", err)
+	}
+	if isMember {
+		return UserJoinGroup{}, ErrUserIsMember
+	}
+
+	// Add user to the group
+	err = a.DBQueries.AddUserToGroup(ctx, database.AddUserToGroupParams{
 		UserID:  userID,
-		GroupID: groupID,
+		GroupID: group.ID,
 		Role:    role,
 	})
 	if err != nil {
-		return fmt.Errorf("joinGroup: error adding user to group: %w", err)
+		return UserJoinGroup{}, fmt.Errorf("joinGroup: error adding user to group: %w", err)
 	}
 
-	return nil
+	jsonResponse := UserJoinGroup{
+		UserID:    userID,
+		GroupID:   group.ID,
+		GroupName: group.Name,
+		Role:      role,
+	}
+
+	return jsonResponse, nil
 }
