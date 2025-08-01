@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"database/sql"
 	"errors"
 	"log"
 	"net/http"
@@ -252,4 +253,32 @@ func (a *APIConfig) ModerateUserHandler(w http.ResponseWriter, r *http.Request) 
 
 	w.WriteHeader(http.StatusNoContent)
 	log.Printf("User %v moderated in group %v by admin %v", targetUserID, groupID, userID)
+}
+
+func (a *APIConfig) GroupFromInviteCodeHandler(w http.ResponseWriter, r *http.Request) {
+	// Parse the invite code from the URL path
+	inviteCode, err := parseInviteCodePathParam(r, "invite_code")
+	if err != nil {
+		http.Error(w, "Invalid invite code", http.StatusBadRequest)
+		return
+	}
+
+	// Fetch group by invite code
+	group, err := a.getGroupByInviteCode(r.Context(), inviteCode)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			http.Error(w, "Group not found for invite code", http.StatusNotFound)
+			return
+		}
+		http.Error(w, "Error retrieving group by invite code", http.StatusInternalServerError)
+		return
+	}
+
+	// Create JSON response
+	if err := CreateJSONResponse(group, w, http.StatusOK); err != nil {
+		log.Printf("Error creating JSON response: %v", err)
+		return
+	}
+
+	log.Printf("Group retrieved successfully for invite code: %s", inviteCode)
 }
