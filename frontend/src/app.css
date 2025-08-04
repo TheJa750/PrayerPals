@@ -1,35 +1,77 @@
+:root {
+  /* Primary colors */
+  --primary-green: #4a7c59;
+  --primary-green-dark: #355c3a;
+  --primary-green-light: #6cb883;
+  --primary-green-accent: #00b54e;
+  --primary-green-medium: #4f9865;
+  --primary-green-bright: #09a929;
+  --primary-green-header: #447753;
+
+  /* Background colors */
+  --background-light: #f7f7f9;
+  --background-white: #ffffff;
+  --background-section: #f9f9f9;
+  --background-gradient-start: #f7f7f9;
+  --background-gradient-end: #ccd7cf;
+  --background-hover: #f0f0f0;
+
+  /* Text colors */
+  --text-primary: #222;
+  --text-secondary: #666;
+  --text-tertiary: #4e4e4e;
+  --text-muted: #888;
+  --text-dark: #333;
+
+  /* Border colors */
+  --border-light: #ddd;
+  --border-medium: #ccc;
+  --border-accent: #e4e6ee;
+  --border-input: #bbb;
+  --border-separator: #eee;
+
+  /* Status colors */
+  --success-green: #2ecc71;
+  --success-alt: #51cf66;
+  --error-red: #e74c3c;
+  --error-alt: #ff6b6b;
+  --error-dark: #c0392b;
+
+  /* Neutral colors */
+  --neutral-gray: #6c757d;
+  --neutral-close: #666;
+  --neutral-close-hover: #000;
+}
+
 main {
-  background: #f7f7f9;
+  background: var(--background-light);
   min-height: 100vh;
   padding: 2rem;
 }
 
 body {
-  background: #f7f7f9;
+  background: var(--background-light);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   font-family: 'Cambria', serif;
   min-width: 320px;
-  color: #222;
-  /* cursor: url('./assets/cross-cursor.png'), auto; mostly just to see if I could*/
+  color: var(--text-primary);
 }
 
 .container {
   max-width: 1100px;
   margin: 0 auto;
   padding: 1rem;
-  background: #fff;
+  background: var(--background-white);
   border-radius: 16px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
-  border: 2px groove #e4e6ee;
+  border: 2px groove var(--border-accent);
   overflow-x: auto;
 }
 
-
-
 button {
-  background: #6cb883;
-  color: #fff;
+  background: var(--primary-green-light);
+  color: var(--background-white);
   border: none;
   padding: 0.7em 1.5em;
   border-radius: 5px;
@@ -43,14 +85,14 @@ button {
 
 button:hover,
 button:focus {
-  background: #355c3a;
+  background: var(--primary-green-dark);
   transform: translateY(-2px) scale(1.03);
   outline: none;
 }
 
 .banner-btn {
-  background: #4a7c59;
-  color: #fff;
+  background: var(--primary-green);
+  color: var(--background-white);
   border: none;
   padding: 0.7em 1.5em;
   border-radius: 5px;
@@ -58,15 +100,13 @@ button:focus {
   font-size: 1rem;
   font-weight: 50;
   margin: 0.5em;
-  transition:
-    background 0.2s,
-    transform 0.1s;
+  transition: background 0.2s, transform 0.1s;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
 }
 
 .banner-btn:hover,
 .banner-btn:focus {
-  background: #355c3a;
+  background: var(--primary-green-dark);
   transform: translateY(-2px) scale(1.03);
   outline: none;
 }
@@ -75,8 +115,8 @@ button:focus {
   position: absolute;
   top: 1rem;
   right: 1rem;
-  background: #e74c3c;
-  color: #fff;
+  background: var(--error-red);
+  color: var(--background-white);
   border: none;
   padding: 0.7em 1.5em;
   border-radius: 5px;
@@ -86,7 +126,7 @@ button:focus {
 }
 
 .logout-btn:hover {
-  background: #c0392b;
+  background: var(--error-dark);
 }
 
 .home-image {
@@ -107,9 +147,9 @@ form {
   max-width: 500px;
   margin: 0 auto;
   padding: 4rem;
-  border: 2px groove #e4e6ee;
+  border: 2px groove var(--border-accent);
   border-radius: 16px;
-  background: #fff;
+  background: var(--background-white);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07);
   margin: 2rem auto 3rem;
 }
@@ -132,7 +172,7 @@ form {
 .form-row input[type="email"],
 .form-row input[type="password"] {
   padding: 0.5rem;
-  border: 1px solid #bbb;
+  border: 1px solid var(--border-input);
   border-radius: 5px;
   font-size: 1em;
   width: 350px;
@@ -140,7 +180,7 @@ form {
 
 .form-row textarea {
   padding: 0.5rem;
-  border: 1px solid #bbb;
+  border: 1px solid var(--border-input);
   border-radius: 5px;
   font-size: 1em;
   width: 350px;
@@ -151,7 +191,7 @@ form {
   border: none;
   cursor: pointer;
   font-size: 0.9em;
-  color: #888;
+  color: var(--text-muted);
   z-index: 2;
   padding: 0 0.4em;
   box-shadow: none;
@@ -164,13 +204,13 @@ form {
 }
 
 .error-message {
-  color: #e74c3c;
+  color: var(--error-red);
   font-size: 0.9em;
   margin-top: 0.5rem;
 }
 
 .success-message {
-  color: #2ecc71;
+  color: var(--success-green);
   font-size: 0.9em;
   margin-top: 0.5rem;
 }
@@ -199,9 +239,9 @@ label:hover {
 .dashboard-section {
   margin-bottom: 30px;
   padding: 20px;
-  border: 1px solid #ddd;
+  border: 1px solid var(--border-light);
   border-radius: 8px;
-  background-color: #f9f9f9;
+  background-color: var(--background-section);
 }
 
 .actions-grid {
@@ -213,8 +253,8 @@ label:hover {
 
 .action-button {
   padding: 12px 16px;
-  background-color: #4f9865;
-  color: white;
+  background-color: var(--primary-green-medium);
+  color: var(--background-white);
   border: none;
   border-radius: 5px;
   cursor: pointer;
@@ -224,14 +264,14 @@ label:hover {
 }
 
 .action-button:hover {
-  background-color: #09a929;
+  background-color: var(--primary-green-bright);
 }
 
 .welcome-message {
   text-align: center;
   font-size: 1.5rem;
   margin-bottom: 1rem;
-  color: #447753
+  color: var(--primary-green-header);
 }
 
 .groups-list {
@@ -242,10 +282,10 @@ label:hover {
 }
 
 .group-card {
-  border: 1px solid #ccc;
+  border: 1px solid var(--border-medium);
   border-radius: 8px;
   padding: 15px;
-  background-color: #ffffff;
+  background-color: var(--background-white);
   transition: all 0.2s ease;
 }
 
@@ -254,23 +294,23 @@ label:hover {
 }
 
 .group-card.clickable:hover {
-  background-color: #ffffff;
-  border-color: #00b54e;
+  background-color: var(--background-white);
+  border-color: var(--primary-green-accent);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .group-card.clickable:focus {
-  outline: 2px solid #00b54e;
+  outline: 2px solid var(--primary-green-accent);
   outline-offset: 2px;
 }
 
 .group-card h3 {
   margin: 0 0 10px 0;
-  color: #333;
+  color: var(--text-dark);
 }
 
 .group-description {
-  color: #666;
+  color: var(--text-secondary);
   margin: 0;
 }
 
@@ -299,13 +339,12 @@ label:hover {
 
 .header-spacer {
   width: 120px;
-  /* Same width as back button for balance */
 }
 
 .back-button {
   background: none;
   border: none;
-  color: #4a7c59;
+  color: var(--primary-green);
   font-size: 2.5rem;
   cursor: pointer;
   padding: 8px 12px 12px;
@@ -314,7 +353,7 @@ label:hover {
 }
 
 .back-button:hover {
-  background-color: #f0f0f0;
+  background-color: var(--background-hover);
 }
 
 .group-grid {
@@ -327,19 +366,18 @@ label:hover {
 .group-section {
   margin-bottom: 30px;
   padding: 20px;
-  border: 1px solid #ddd;
+  border: 1px solid var(--border-light);
   border-radius: 8px;
-  background-color: #f9f9f9;
+  background-color: var(--background-section);
 }
 
 .post-card {
-  border: 1px solid #ccc;
+  border: 1px solid var(--border-medium);
   border-radius: 8px;
   padding: 15px;
-  background-color: #ffffff;
+  background-color: var(--background-white);
   transition: all 0.2s ease;
   margin-bottom: 15px;
-  /* Add spacing between posts */
 }
 
 .post-card.clickable {
@@ -347,23 +385,23 @@ label:hover {
 }
 
 .post-card.clickable:hover {
-  background-color: #ffffff;
-  border-color: #00b54e;
+  background-color: var(--background-white);
+  border-color: var(--primary-green-accent);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .post-card.clickable:focus {
-  outline: 2px solid #00b54e;
+  outline: 2px solid var(--primary-green-accent);
   outline-offset: 2px;
 }
 
 .post-card h3 {
   margin: 0 0 10px 0;
-  color: #333;
+  color: var(--text-dark);
 }
 
 .post-card p {
-  color: #666;
+  color: var(--text-tertiary);
   margin: 0;
 }
 
@@ -395,7 +433,7 @@ label:hover {
   align-items: center;
   margin-top: 10px;
   font-size: 0.9rem;
-  color: #888;
+  color: var(--text-tertiary);
 }
 
 .post-timestamp {
@@ -404,6 +442,76 @@ label:hover {
 
 .post-comments {
   font-weight: 500;
+}
+
+.post-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.post-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 30px;
+  gap: 15px;
+}
+
+.post-header h1 {
+  margin: 0;
+  color: var(--primary-green-header);
+}
+
+.post-header .back-button {
+  font-size: 1.5rem;
+  padding: 8px 12px;
+}
+
+.main-post {
+  border: 2px solid var(--primary-green);
+  margin-bottom: 30px;
+}
+
+.post-author h2 {
+  margin: 0 0 15px 0;
+  color: var(--primary-green-header);
+  font-size: 1.3rem;
+}
+
+.post-content {
+  margin: 15px 0;
+}
+
+.post-content p {
+  line-height: 1.6;
+  font-size: 1.1rem;
+}
+
+.post-timestamp {
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px solid var(--border-separator);
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.comments-section {
+  margin: 30px 0;
+}
+
+.comments-section h3 {
+  color: var(--primary-green-header);
+  border-bottom: 2px solid var(--primary-green);
+  padding-bottom: 10px;
+}
+
+.add-comment-section {
+  margin-top: 30px;
+}
+
+.add-comment-section h3 {
+  color: var(--primary-green-header);
+  margin-bottom: 15px;
 }
 
 /* Modal styles */
@@ -421,7 +529,7 @@ label:hover {
 }
 
 .modal-content {
-  background: white;
+  background: var(--background-white);
   border-radius: 8px;
   padding: 0;
   max-width: 800px;
@@ -437,7 +545,7 @@ label:hover {
   justify-content: space-between;
   align-items: center;
   padding: 20px 20px 10px 20px;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid var(--border-separator);
 }
 
 .modal-header h2 {
@@ -449,23 +557,23 @@ label:hover {
   border: none;
   font-size: 24px;
   cursor: pointer;
-  color: #666;
+  color: var(--neutral-close);
   padding: 0;
   width: 30px;
   height: 30px;
 }
 
 .close-button:hover {
-  color: #000;
+  color: var(--neutral-close-hover);
 }
 
 .modal-content form {
   padding: 20px;
   max-width: 650px;
   margin: 0 auto;
-  border: 2px groove #e4e6ee;
+  border: 2px groove var(--border-accent);
   border-radius: 16px;
-  background: #fff;
+  background: var(--background-white);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07);
   margin: 2rem auto 3rem;
 }
@@ -490,13 +598,13 @@ label:hover {
 }
 
 .modal-actions button[type="button"] {
-  background-color: #6c757d;
-  color: white;
+  background-color: var(--neutral-gray);
+  color: var(--background-white);
 }
 
 .modal-actions button[type="submit"] {
-  background-color: #4f9865;
-  color: white;
+  background-color: var(--primary-green-medium);
+  color: var(--background-white);
 }
 
 .modal-actions button:hover {
@@ -515,8 +623,8 @@ label:hover {
   padding: 1rem 2rem;
   font-size: 2rem;
   letter-spacing: 0.07em;
-  background: linear-gradient(90deg, #f7f7f9 35%, #ccd7cf 100%);
-  color: #4a7c59;
+  background: linear-gradient(90deg, var(--background-gradient-start) 35%, var(--background-gradient-end) 100%);
+  color: var(--primary-green);
   padding: 1rem;
   border-radius: 16px 16px 0 0;
   box-shadow: 0 1px 6px rgba(0, 0, 0, 0.08);
@@ -528,7 +636,7 @@ label:hover {
 .brand-logo {
   font-size: 2rem;
   font-weight: bold;
-  color: #447753;
+  color: var(--primary-green-header);
   letter-spacing: 0.07em;
   user-select: none;
 }
@@ -540,137 +648,132 @@ label:hover {
 
 /* Dark Mode Styles */
 @media (prefers-color-scheme: dark) {
+  :root {
+    /* Dark mode color overrides */
+    --background-light: #1d2e3f;
+    --background-white: #2a3f54;
+    --background-section: #2a3f54;
+    --background-gradient-start: #2a3f54;
+    --background-gradient-end: #3a4f64;
+    --background-hover: #3a4f64;
+
+    --text-primary: #e8f3f5;
+    --text-secondary: #b8c5d1;
+    --text-tertiary: #b8c5d1;
+    --text-dark: #e8f3f5;
+    --text-muted: #b8c5d1;
+
+    --border-light: #3a4f64;
+    --border-medium: #3a4f64;
+    --border-accent: #47607a;
+    --border-input: #4a5f74;
+    --border-separator: #3a4f64;
+
+    --primary-green-light: var(--primary-green-light);
+    --primary-green-accent: var(--primary-green-light);
+
+    --success-green: var(--success-alt);
+    --error-red: var(--error-alt);
+
+    --neutral-close: #b8c5d1;
+    --neutral-close-hover: #e8f3f5;
+  }
+
   body {
-    background: #1d2e3f;
-    color: #fff;
+    background: var(--background-light);
+    color: var(--text-primary);
   }
 
   main {
-    background: #1d2e3f;
-    color: #e8f3f5;
+    background: var(--background-light);
+    color: var(--text-primary);
   }
 
-  /* Container and forms */
   .container {
-    background: #2a3f54;
-    border-color: #3a4f64;
+    background: var(--background-white);
+    border-color: var(--border-light);
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
   }
 
   form {
-    background: #2a3f54;
-    border-color: #3a4f64;
+    background: var(--background-white);
+    border-color: var(--border-accent);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
   }
 
-  /* Inputs */
   .form-row input[type="text"],
   .form-row input[type="email"],
   .form-row input[type="password"],
   .form-row textarea {
-    background: #1d2e3f;
-    border-color: #4a5f74;
-    color: #e8f3f5;
+    background: var(--background-light);
+    border-color: var(--border-input);
+    color: var(--text-primary);
   }
 
   .form-row input:focus,
   .form-row textarea:focus {
-    border-color: #6cb883;
+    border-color: var(--primary-green-light);
     outline: none;
   }
 
-  /* Dashboard sections */
-  .dashboard-section {
-    background-color: #2a3f54;
-    border-color: #3a4f64;
-    color: #e8f3f5;
+  .dashboard-section,
+  .group-section {
+    background-color: var(--background-section);
+    border-color: var(--border-light);
+    color: var(--text-primary);
   }
 
-  .group-card {
-    background-color: #2a3f54;
-    border-color: #3a4f64;
+  .group-card,
+  .post-card {
+    background-color: var(--background-white);
+    border-color: var(--border-light);
   }
 
-  .group-card.clickable:hover {
-    background-color: #3a4f64;
-    border-color: #6cb883;
+  .group-card.clickable:hover,
+  .post-card.clickable:hover {
+    background-color: var(--background-hover);
+    border-color: var(--primary-green-light);
   }
 
-  .group-card h3 {
-    color: #e8f3f5;
-  }
-
-  .group-description {
-    color: #b8c5d1;
-  }
-
-  /* Banner */
-  .banner-flex {
-    background: linear-gradient(90deg, #2a3f54 35%, #3a4f64 100%);
-    color: #6cb883;
-  }
-
-  .brand-logo {
-    color: #6cb883;
-  }
-
-  /* Modals */
   .modal-overlay {
     background-color: rgba(0, 0, 0, 0.7);
   }
 
   .modal-content {
-    background: #2a3f54;
-    color: #e8f3f5;
+    background: var(--background-white);
+    color: var(--text-primary);
   }
 
   .modal-content form {
-    background: #2a3f54;
+    background: var(--background-white);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-    border: 2px groove #47607a;
+    border-color: var(--border-accent);
   }
 
   .modal-header {
-    border-bottom-color: #3a4f64;
-  }
-
-  .close-button {
-    color: #b8c5d1;
-  }
-
-  .close-button:hover {
-    color: #e8f3f5;
-  }
-
-  /* Messages */
-  .error-message {
-    color: #ff6b6b;
-  }
-
-  .success-message {
-    color: #51cf66;
-  }
-
-  /* Utility text colors */
-  .text-muted {
-    color: #b8c5d1;
-  }
-
-  .welcome-message {
-    color: #6cb883;
+    border-bottom-color: var(--border-light);
   }
 }
 
 /* Responsive Styles */
 @media (max-width: 768px) {
+  main {
+    padding: 1rem 0.5rem;
+  }
 
-  /* Dashboard - stack the 3-column layout */
-  .dashboard-grid {
+  .container {
+    border-radius: 0;
+    box-shadow: none;
+    max-width: 100vw;
+    padding: 0.5rem;
+  }
+
+  .dashboard-grid,
+  .group-grid {
     grid-template-columns: 1fr;
     gap: 15px;
   }
 
-  /* Make action buttons full width on mobile */
   .action-button {
     width: 100%;
     margin: 0;
@@ -678,7 +781,6 @@ label:hover {
     font-size: 18px;
   }
 
-  /* Forms - make them more mobile friendly */
   form {
     padding: 2rem 1rem;
     margin: 1rem auto;
@@ -703,10 +805,8 @@ label:hover {
   .form-row textarea {
     width: 100%;
     font-size: 16px;
-    /* Prevents zoom on iOS */
   }
 
-  /* Banner - make it more compact */
   .banner-flex {
     padding: 0.5rem 1rem;
     font-size: 1.5rem;
@@ -723,7 +823,6 @@ label:hover {
     flex-wrap: wrap;
   }
 
-  /* Modal - make it full screen on mobile */
   .modal-content {
     width: 95%;
     height: 95%;
@@ -736,21 +835,20 @@ label:hover {
     padding: 1rem;
   }
 
-  /* Group cards - better spacing */
-  .group-card {
+  .group-card,
+  .post-card {
     padding: 12px;
   }
 
-  .group-card h3 {
+  .group-card h3,
+  .post-card h3 {
     font-size: 1.1rem;
   }
 
-  /* Buttons - make them more touch-friendly */
   button {
     padding: 12px 20px;
     font-size: 16px;
     min-height: 44px;
-    /* Apple's recommended touch target */
   }
 
   .banner-btn {
@@ -758,7 +856,6 @@ label:hover {
     font-size: 14px;
   }
 
-  /* Images */
   .home-image {
     width: 90%;
   }
@@ -768,7 +865,6 @@ label:hover {
     gap: 1rem;
   }
 
-  /* Typography adjustments */
   h1 {
     font-size: 1.8rem;
   }
@@ -777,13 +873,40 @@ label:hover {
     font-size: 1.4rem;
   }
 
-  /* Dashboard sections */
-  .dashboard-section {
+  .dashboard-section,
+  .group-section {
     padding: 15px;
   }
 
-  .dashboard-container {
+  .dashboard-container,
+  .group-container,
+  .post-container {
     padding: 10px;
+  }
+
+  .header-row {
+    flex-direction: column;
+    gap: 1rem;
+    text-align: center;
+  }
+
+  .header-spacer {
+    display: none;
+  }
+
+  .back-button {
+    font-size: 2rem;
+    align-self: flex-start;
+  }
+
+  .post-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .post-header .back-button {
+    font-size: 1.5rem;
   }
 }
 
@@ -806,9 +929,17 @@ label:hover {
   form {
     padding: 1rem 0.5rem;
   }
+
+  .back-button {
+    font-size: 1.5rem;
+  }
+
+  .post-header .back-button {
+    font-size: 1.2rem;
+  }
 }
 
-/* Some Utility Classes */
+/* Utility Classes */
 .text-center {
   text-align: center;
 }
@@ -871,7 +1002,7 @@ label:hover {
 }
 
 .text-muted {
-  color: #888;
+  color: var(--text-muted);
 }
 
 .d-flex {
@@ -895,7 +1026,7 @@ label:hover {
 }
 
 .border {
-  border: 2px solid #e4e6ee;
+  border: 2px solid var(--border-accent);
 }
 
 .hidden {
