@@ -70,6 +70,7 @@ type Post struct {
 	CreatedAt    string    `json:"created_at"`
 	Author       string    `json:"author"`        // Username of the post author
 	CommentCount int64     `json:"comment_count"` // Number of comments on the post
+	Comments     []Comment `json:"comments"`      // Comments associated with the post
 }
 
 type Comment struct {
@@ -79,6 +80,7 @@ type Comment struct {
 	UserID    uuid.UUID `json:"user_id"`
 	Content   string    `json:"content"`
 	CreatedAt string    `json:"created_at"`
+	Author    string    `json:"author"` // Username of the comment author
 }
 
 type PromoteUserRequest struct {

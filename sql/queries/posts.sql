@@ -9,7 +9,17 @@ VALUES ($1, $2, $3, $4)
 RETURNING *;
 
 -- name: GetPostByID :one
-SELECT * FROM posts WHERE id =  $1;
+SELECT 
+    posts.id,
+    posts.content,
+    posts.user_id,
+    posts.group_id,
+    posts.created_at,
+    users.username
+FROM posts
+LEFT JOIN users ON posts.user_id = users.id
+WHERE posts.id = $1
+AND posts.is_deleted = FALSE;
 
 -- name: GetPostsByGroupID :many
 SELECT * FROM posts
@@ -62,7 +72,15 @@ SET updated_at = CURRENT_TIMESTAMP, is_deleted = TRUE
 WHERE parent_post_id = $1;
 
 -- name: GetCommentsByPostID :many
-SELECT * FROM posts
-WHERE parent_post_id = $1
-AND is_deleted = FALSE
-ORDER BY created_at DESC;
+SELECT
+    posts.id,
+    posts.content,
+    posts.user_id,
+    posts.group_id,
+    posts.created_at,
+    users.username
+FROM posts
+LEFT JOIN users ON posts.user_id = users.id
+WHERE posts.parent_post_id = $1
+AND posts.is_deleted = FALSE
+ORDER BY posts.created_at DESC;

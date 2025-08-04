@@ -177,13 +177,17 @@ func (a *APIConfig) GetCommentsForPostHandler(w http.ResponseWriter, r *http.Req
 	}
 
 	// Fetch comments for the post
-	comments, err := a.getCommentsOnPost(r.Context(), postID)
+	response, err := a.getPostWithComments(r.Context(), userID, postID)
 	if err != nil {
-		http.Error(w, "Failed to fetch comments", http.StatusInternalServerError)
+		if errors.Is(err, ErrUserNotMember) {
+			http.Error(w, "User not a member of the group", http.StatusForbidden)
+			return
+		}
+		http.Error(w, "Failed to fetch comments for post", http.StatusInternalServerError)
 		return
 	}
 
-	err = CreateJSONResponse(comments, w, http.StatusOK)
+	err = CreateJSONResponse(response, w, http.StatusOK)
 	if err != nil {
 		http.Error(w, "Error creating JSON response", http.StatusInternalServerError)
 		return

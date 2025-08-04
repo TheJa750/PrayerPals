@@ -97,30 +97,45 @@ func (q *Queries) DeletePost(ctx context.Context, id uuid.UUID) error {
 }
 
 const getCommentsByPostID = `-- name: GetCommentsByPostID :many
-SELECT id, user_id, group_id, content, created_at, updated_at, parent_post_id, is_deleted FROM posts
-WHERE parent_post_id = $1
-AND is_deleted = FALSE
-ORDER BY created_at DESC
+SELECT
+    posts.id,
+    posts.content,
+    posts.user_id,
+    posts.group_id,
+    posts.created_at,
+    users.username
+FROM posts
+LEFT JOIN users ON posts.user_id = users.id
+WHERE posts.parent_post_id = $1
+AND posts.is_deleted = FALSE
+ORDER BY posts.created_at DESC
 `
 
-func (q *Queries) GetCommentsByPostID(ctx context.Context, parentPostID uuid.NullUUID) ([]Post, error) {
+type GetCommentsByPostIDRow struct {
+	ID        uuid.UUID
+	Content   string
+	UserID    uuid.UUID
+	GroupID   uuid.UUID
+	CreatedAt sql.NullTime
+	Username  sql.NullString
+}
+
+func (q *Queries) GetCommentsByPostID(ctx context.Context, parentPostID uuid.NullUUID) ([]GetCommentsByPostIDRow, error) {
 	rows, err := q.db.QueryContext(ctx, getCommentsByPostID, parentPostID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []Post
+	var items []GetCommentsByPostIDRow
 	for rows.Next() {
-		var i Post
+		var i GetCommentsByPostIDRow
 		if err := rows.Scan(
 			&i.ID,
+			&i.Content,
 			&i.UserID,
 			&i.GroupID,
-			&i.Content,
 			&i.CreatedAt,
-			&i.UpdatedAt,
-			&i.ParentPostID,
-			&i.IsDeleted,
+			&i.Username,
 		); err != nil {
 			return nil, err
 		}
@@ -136,21 +151,38 @@ func (q *Queries) GetCommentsByPostID(ctx context.Context, parentPostID uuid.Nul
 }
 
 const getPostByID = `-- name: GetPostByID :one
-SELECT id, user_id, group_id, content, created_at, updated_at, parent_post_id, is_deleted FROM posts WHERE id =  $1
+SELECT 
+    posts.id,
+    posts.content,
+    posts.user_id,
+    posts.group_id,
+    posts.created_at,
+    users.username
+FROM posts
+LEFT JOIN users ON posts.user_id = users.id
+WHERE posts.id = $1
+AND posts.is_deleted = FALSE
 `
 
-func (q *Queries) GetPostByID(ctx context.Context, id uuid.UUID) (Post, error) {
+type GetPostByIDRow struct {
+	ID        uuid.UUID
+	Content   string
+	UserID    uuid.UUID
+	GroupID   uuid.UUID
+	CreatedAt sql.NullTime
+	Username  sql.NullString
+}
+
+func (q *Queries) GetPostByID(ctx context.Context, id uuid.UUID) (GetPostByIDRow, error) {
 	row := q.db.QueryRowContext(ctx, getPostByID, id)
-	var i Post
+	var i GetPostByIDRow
 	err := row.Scan(
 		&i.ID,
+		&i.Content,
 		&i.UserID,
 		&i.GroupID,
-		&i.Content,
 		&i.CreatedAt,
-		&i.UpdatedAt,
-		&i.ParentPostID,
-		&i.IsDeleted,
+		&i.Username,
 	)
 	return i, err
 }

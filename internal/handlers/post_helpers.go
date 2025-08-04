@@ -143,8 +143,45 @@ func (a *APIConfig) getCommentsOnPost(ctx context.Context, postID uuid.UUID) ([]
 			UserID:    comment.UserID,
 			Content:   comment.Content,
 			CreatedAt: comment.CreatedAt.Time.Format(time.RFC3339),
+			Author:    comment.Username.String,
 		}
 	}
 
 	return jsonComments, nil
+}
+
+func (a *APIConfig) getPostWithComments(ctx context.Context, userID, postID uuid.UUID) (Post, error) {
+	// Fetch the post
+	post, err := a.DBQueries.GetPostByID(ctx, postID)
+	if err != nil {
+		return Post{}, err
+	}
+
+	// Verify if the user is a member of the group
+	isMember, err := a.verifyUserInGroup(ctx, userID, post.GroupID)
+	if err != nil {
+		return Post{}, err
+	}
+	if !isMember {
+		return Post{}, ErrUserNotMember
+	}
+
+	// Fetch comments for the post
+	comments, err := a.getCommentsOnPost(ctx, postID)
+	if err != nil {
+		return Post{}, err
+	}
+
+	// Convert database post to API Post type
+	jsonPost := Post{
+		ID:        post.ID,
+		GroupID:   post.GroupID,
+		UserID:    post.UserID,
+		Content:   post.Content,
+		CreatedAt: post.CreatedAt.Time.Format(time.RFC3339),
+		Author:    post.Username.String,
+		Comments:  comments,
+	}
+
+	return jsonPost, nil
 }
