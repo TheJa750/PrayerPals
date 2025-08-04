@@ -1,6 +1,7 @@
 <script>
     import { onMount } from "svelte";
     import { apiRequest } from "../lib/api";
+    import { REFRESH_ERROR_MESSAGE } from "../lib/api";
 
     export let navigate;
     export let groupId;
@@ -37,6 +38,12 @@
             group = groupData;
         } catch (error) {
             console.error("Error loading group data:", error);
+
+            if (error.message === REFRESH_ERROR_MESSAGE) {
+                navigate("login");
+                return;
+            }
+
             loadGroupError =
                 "Failed to load group data. Please try again later.";
         } finally {
@@ -51,6 +58,12 @@
             groupPosts = posts || [];
         } catch (error) {
             console.error("Error loading group posts:", error);
+
+            if (error.message === REFRESH_ERROR_MESSAGE) {
+                navigate("login");
+                return;
+            }
+
             loadPostError =
                 "Failed to load prayer requests. Please try again later.";
         } finally {
@@ -90,6 +103,12 @@
             await loadGroupPosts(); // Reload posts after creating a new one
         } catch (error) {
             console.error("Error creating post:", error);
+
+            if (error.message === REFRESH_ERROR_MESSAGE) {
+                navigate("login");
+                return;
+            }
+
             createPostError =
                 error.message || "Failed to create post. Please try again.";
         } finally {

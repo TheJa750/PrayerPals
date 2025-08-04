@@ -1,6 +1,7 @@
 <script>
     import { onMount } from "svelte";
     import { apiRequest } from "../lib/api";
+    import { REFRESH_ERROR_MESSAGE } from "../lib/api";
 
     export let navigate;
     export let groupId;
@@ -44,6 +45,12 @@
             comments = post.comments || []; // Ensure comments is always an array
         } catch (error) {
             console.error("Error loading post:", error);
+
+            if (error.message === REFRESH_ERROR_MESSAGE) {
+                navigate("login");
+                return;
+            }
+
             loadPostError = "Failed to load post";
         } finally {
             isLoadingPost = false;
@@ -68,6 +75,12 @@
             await loadPost(); // Reload the post to include the new comment
         } catch (error) {
             console.error("Error adding comment:", error);
+
+            if (error.message === REFRESH_ERROR_MESSAGE) {
+                navigate("login");
+                return;
+            }
+
             commentError = error.message || "Failed to add comment";
         } finally {
             isAddingComment = false;

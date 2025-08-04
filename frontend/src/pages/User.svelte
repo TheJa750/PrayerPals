@@ -1,6 +1,7 @@
 <script>
     import { onMount } from "svelte";
     import { apiRequest } from "../lib/api";
+    import { REFRESH_ERROR_MESSAGE } from "../lib/api";
     import Group from "./Group.svelte";
     export let navigate;
 
@@ -36,6 +37,12 @@
             userGroups = groups || [];
         } catch (error) {
             console.error("Error loading user groups:", error);
+
+            if (error.message === REFRESH_ERROR_MESSAGE) {
+                navigate("login");
+                return;
+            }
+
             errorMessage = "Failed to load groups. Please try again later.";
         } finally {
             isLoadingGroups = false;
@@ -82,6 +89,12 @@
             await loadUserGroups();
         } catch (error) {
             console.error("Error creating group:", error);
+
+            if (error.message === REFRESH_ERROR_MESSAGE) {
+                navigate("login");
+                return;
+            }
+
             createGroupError =
                 error.message || "Failed to create group. Please try again.";
         } finally {
@@ -100,6 +113,12 @@
             groupPreview = response;
         } catch (error) {
             console.error("Error previewing group:", error);
+
+            if (error.message === REFRESH_ERROR_MESSAGE) {
+                navigate("login");
+                return;
+            }
+
             joinGroupError =
                 error.message || "Failed to find group. Please check the code.";
         } finally {
@@ -123,6 +142,12 @@
             await loadUserGroups();
         } catch (error) {
             console.error("Error joining group:", error);
+
+            if (error.message === REFRESH_ERROR_MESSAGE) {
+                navigate("login");
+                return;
+            }
+
             joinGroupError =
                 error.message || "Failed to join group. Please try again.";
         } finally {
