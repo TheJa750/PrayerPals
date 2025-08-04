@@ -313,3 +313,30 @@ func (a *APIConfig) updateGroupInviteCode(ctx context.Context, groupID uuid.UUID
 
 	return nil
 }
+
+func (a *APIConfig) getGroupByID(ctx context.Context, userID, groupID uuid.UUID) (Group, error) {
+	// Verify if the user is a member of the group
+	isMember, err := a.verifyUserInGroup(ctx, userID, groupID)
+	if err != nil {
+		return Group{}, err
+	}
+	if !isMember {
+		return Group{}, ErrUserNotMember
+	}
+
+	// Fetch the group by ID
+	group, err := a.DBQueries.GetGroupByID(ctx, groupID)
+	if err != nil {
+		return Group{}, fmt.Errorf("error retrieving group by ID: %w", err)
+	}
+
+	jsonGroup := Group{
+		ID:          group.ID,
+		Name:        group.Name,
+		Description: group.Description.String,
+		OwnerID:     group.OwnerID.UUID,
+		InviteCode:  group.InviteCode,
+	}
+
+	return jsonGroup, nil
+}

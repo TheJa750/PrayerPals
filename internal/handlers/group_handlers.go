@@ -282,3 +282,42 @@ func (a *APIConfig) GroupFromInviteCodeHandler(w http.ResponseWriter, r *http.Re
 
 	log.Printf("Group retrieved successfully for invite code: %s", inviteCode)
 }
+
+func (a *APIConfig) GetGroupInfoHandler(w http.ResponseWriter, r *http.Request) {
+	// Validate JWT and extract user ID
+	userID, err := a.getUserIDFromToken(r)
+	if err != nil {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	// Parse the group ID from the URL path
+	groupID, err := parseUUIDPathParam(r, "group_id")
+	if err != nil {
+		http.Error(w, "Invalid group ID", http.StatusBadRequest)
+		return
+	}
+
+	// Fetch group information
+	groupInfo, err := a.getGroupByID(r.Context(), userID, groupID)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			http.Error(w, "Group not found", http.StatusNotFound)
+			return
+		}
+		if errors.Is(err, ErrUserNotMember) {
+			http.Error(w, "User is not a member of the group", http.StatusForbidden)
+			return
+		}
+		http.Error(w, "Error retrieving group information", http.StatusInternalServerError)
+		return
+	}
+
+	// Create JSON response
+	if err := CreateJSONResponse(groupInfo, w, http.StatusOK); err != nil {
+		log.Printf("Error creating JSON response: %v", err)
+		return
+	}
+
+	log.Printf("Group information retrieved successfully for group ID: %s", groupID)
+}
