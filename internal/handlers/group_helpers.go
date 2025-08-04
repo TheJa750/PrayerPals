@@ -111,12 +111,13 @@ func (a *APIConfig) getPostFeed(ctx context.Context, userID, groupID uuid.UUID, 
 	jsonPosts := make([]Post, len(posts))
 	for i, post := range posts {
 		jsonPosts[i] = Post{
-			ID:        post.ID,
-			GroupID:   post.GroupID,
-			UserID:    post.UserID,
-			Content:   post.Content,
-			CreatedAt: post.CreatedAt.Time.Format(time.RFC3339),
-			Author:    post.Username,
+			ID:           post.ID,
+			GroupID:      post.GroupID,
+			UserID:       post.UserID,
+			Content:      post.Content,
+			CreatedAt:    post.CreatedAt.Time.Format(time.RFC3339),
+			Author:       post.Username.String,
+			CommentCount: post.CommentCount,
 		}
 	}
 

@@ -63,12 +63,13 @@ type PostRequest struct {
 }
 
 type Post struct {
-	ID        uuid.UUID `json:"id"`
-	GroupID   uuid.UUID `json:"group_id"`
-	UserID    uuid.UUID `json:"user_id"`
-	Content   string    `json:"content"`
-	CreatedAt string    `json:"created_at"`
-	Author    string    `json:"author"` // Username of the post author
+	ID           uuid.UUID `json:"id"`
+	GroupID      uuid.UUID `json:"group_id"`
+	UserID       uuid.UUID `json:"user_id"`
+	Content      string    `json:"content"`
+	CreatedAt    string    `json:"created_at"`
+	Author       string    `json:"author"`        // Username of the post author
+	CommentCount int64     `json:"comment_count"` // Number of comments on the post
 }
 
 type Comment struct {

@@ -36,12 +36,20 @@ RETURNING *;
 
 -- name: GetPostsForFeed :many
 SELECT
-    posts.*,
-    users.username
+    posts.id,
+    posts.content,
+    posts.user_id,
+    posts.group_id,
+    posts.created_at,
+    users.username,
+    COUNT(comments.id) AS comment_count
 FROM posts
-INNER JOIN users ON posts.user_id = users.id
+LEFT JOIN users ON posts.user_id = users.id
+LEFT JOIN posts AS comments ON posts.id = comments.parent_post_id
 WHERE posts.group_id = $1
-  AND posts.is_deleted = FALSE
+AND posts.parent_post_id IS NULL
+AND posts.is_deleted = FALSE
+GROUP BY posts.id, posts.content, posts.user_id, posts.group_id, posts.created_at, users.username
 ORDER BY posts.created_at DESC
 LIMIT $2 OFFSET $3;
 

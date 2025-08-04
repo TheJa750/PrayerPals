@@ -195,12 +195,20 @@ func (q *Queries) GetPostsByGroupID(ctx context.Context, groupID uuid.UUID) ([]P
 
 const getPostsForFeed = `-- name: GetPostsForFeed :many
 SELECT
-    posts.id, posts.user_id, posts.group_id, posts.content, posts.created_at, posts.updated_at, posts.parent_post_id, posts.is_deleted,
-    users.username
+    posts.id,
+    posts.content,
+    posts.user_id,
+    posts.group_id,
+    posts.created_at,
+    users.username,
+    COUNT(comments.id) AS comment_count
 FROM posts
-INNER JOIN users ON posts.user_id = users.id
+LEFT JOIN users ON posts.user_id = users.id
+LEFT JOIN posts AS comments ON posts.id = comments.parent_post_id
 WHERE posts.group_id = $1
-  AND posts.is_deleted = FALSE
+AND posts.parent_post_id IS NULL
+AND posts.is_deleted = FALSE
+GROUP BY posts.id, posts.content, posts.user_id, posts.group_id, posts.created_at, users.username
 ORDER BY posts.created_at DESC
 LIMIT $2 OFFSET $3
 `
@@ -213,14 +221,12 @@ type GetPostsForFeedParams struct {
 
 type GetPostsForFeedRow struct {
 	ID           uuid.UUID
+	Content      string
 	UserID       uuid.UUID
 	GroupID      uuid.UUID
-	Content      string
 	CreatedAt    sql.NullTime
-	UpdatedAt    sql.NullTime
-	ParentPostID uuid.NullUUID
-	IsDeleted    sql.NullBool
-	Username     string
+	Username     sql.NullString
+	CommentCount int64
 }
 
 func (q *Queries) GetPostsForFeed(ctx context.Context, arg GetPostsForFeedParams) ([]GetPostsForFeedRow, error) {
@@ -234,14 +240,12 @@ func (q *Queries) GetPostsForFeed(ctx context.Context, arg GetPostsForFeedParams
 		var i GetPostsForFeedRow
 		if err := rows.Scan(
 			&i.ID,
+			&i.Content,
 			&i.UserID,
 			&i.GroupID,
-			&i.Content,
 			&i.CreatedAt,
-			&i.UpdatedAt,
-			&i.ParentPostID,
-			&i.IsDeleted,
 			&i.Username,
+			&i.CommentCount,
 		); err != nil {
 			return nil, err
 		}
