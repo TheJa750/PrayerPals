@@ -23,6 +23,8 @@
     let inviteCode = "";
     let isJoiningGroup = false;
     let joinGroupError = "";
+    let isLoadingPreview = false;
+    let groupPreview = null;
 
     // Load user groups from the API
     async function loadUserGroups() {
@@ -56,6 +58,7 @@
         showJoinGroupModal = true;
         inviteCode = "";
         joinGroupError = "";
+        groupPreview = null;
     }
 
     function closeJoinGroupModal() {
@@ -83,6 +86,47 @@
                 error.message || "Failed to create group. Please try again.";
         } finally {
             isCreatingGroup = false;
+        }
+    }
+
+    async function handlePreviewGroup(event) {
+        event.preventDefault();
+        isLoadingPreview = true;
+        joinGroupError = "";
+        groupPreview = null;
+
+        try {
+            const response = await apiRequest(`/groups/${inviteCode}`, "GET");
+            groupPreview = response;
+        } catch (error) {
+            console.error("Error previewing group:", error);
+            joinGroupError =
+                error.message || "Failed to find group. Please check the code.";
+        } finally {
+            isLoadingPreview = false;
+        }
+    }
+
+    async function handleJoinGroup() {
+        if (!groupPreview || isJoiningGroup) return;
+
+        isJoiningGroup = true;
+        joinGroupError = "";
+
+        try {
+            const joinResponse = await apiRequest(
+                `/groups/${inviteCode}/join`,
+                "POST",
+            );
+
+            closeJoinGroupModal();
+            await loadUserGroups();
+        } catch (error) {
+            console.error("Error joining group:", error);
+            joinGroupError =
+                error.message || "Failed to join group. Please try again.";
+        } finally {
+            isJoiningGroup = false;
         }
     }
 
@@ -189,7 +233,7 @@
                             id="group-name"
                             required
                             bind:value={newGroupName}
-                            disabled={isCreatingGroup}
+                            disabled={isLoadingPreview}
                             placeholder="Enter group name"
                         />
                     </div>
@@ -221,6 +265,125 @@
                     </div>
                 </form>
             </div>
+        </div>
+    {/if}
+
+    <!-- Join Group Modal -->
+    {#if showJoinGroupModal}
+        <div
+            class="modal-overlay"
+            on:click={closeJoinGroupModal}
+            on:keydown={(e) => e.key === "Escape" && closeJoinGroupModal()}
+            role="dialog"
+            aria-modal="true"
+            tabindex="-1"
+        >
+            {#if !groupPreview}
+                <!-- svelte-ignore a11y-click-events-have-key-events -->
+                <!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
+                <div
+                    class="modal-content"
+                    on:click|stopPropagation
+                    role="document"
+                >
+                    <div class="modal-header">
+                        <h2>Enter Invite Code</h2>
+                        <button
+                            class="close-button"
+                            on:click={closeJoinGroupModal}
+                        >
+                            &times;
+                        </button>
+                    </div>
+
+                    <form on:submit={handlePreviewGroup}>
+                        <div class="form-row">
+                            <label for="invite-code">Invite Code:</label>
+                            <input
+                                type="text"
+                                id="invite-code"
+                                bind:value={inviteCode}
+                                required
+                                placeholder="Enter invite code"
+                            />
+                        </div>
+
+                        {#if joinGroupError}
+                            <div class="error-message">
+                                {joinGroupError}
+                            </div>
+                        {/if}
+
+                        <div class="modal-actions">
+                            <button
+                                type="button"
+                                on:click={closeJoinGroupModal}
+                                disabled={isLoadingPreview}
+                            >
+                                Cancel
+                            </button>
+                            <button type="submit" disabled={isLoadingPreview}>
+                                {isLoadingPreview ? "Loading..." : "Find Group"}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            {:else}
+                <!-- svelte-ignore a11y-click-events-have-key-events -->
+                <!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
+                <div
+                    class="modal-content"
+                    on:click|stopPropagation
+                    role="document"
+                >
+                    <div class="modal-header">
+                        <h2>Join Group</h2>
+                        <button
+                            class="close-button"
+                            on:click={closeJoinGroupModal}
+                        >
+                            &times;
+                        </button>
+                    </div>
+
+                    <div
+                        class="group-card clickable"
+                        on:click={handleJoinGroup}
+                        role="button"
+                        tabindex="0"
+                    >
+                        <h3>{groupPreview.name}</h3>
+                        {#if groupPreview.description}
+                            <p class="group-description">
+                                {groupPreview.description}
+                            </p>
+                        {/if}
+                    </div>
+
+                    {#if joinGroupError}
+                        <div class="error-message">
+                            {joinGroupError}
+                        </div>
+                    {/if}
+
+                    <div class="modal-actions">
+                        <button
+                            type="button"
+                            on:click={closeJoinGroupModal}
+                            disabled={isJoiningGroup}
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            type="button"
+                            disabled={isJoiningGroup}
+                            on:click={handleJoinGroup}
+                        >
+                            Join
+                        </button>
+                    </div>
+                </div>
+            {/if}
         </div>
     {/if}
 </div>

@@ -338,6 +338,11 @@ label:hover {
   margin: 2rem auto 3rem;
 }
 
+.modal-content .group-card {
+  max-width: 500px;
+  margin: 0 auto;
+}
+
 .modal-actions {
   display: flex;
   gap: 10px;
@@ -400,7 +405,6 @@ label:hover {
   display: flex;
   gap: 0.5rem;
 }
-
 
 /* Dark Mode Styles */
 @media (prefers-color-scheme: dark) {
