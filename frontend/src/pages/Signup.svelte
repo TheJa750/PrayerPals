@@ -117,7 +117,7 @@
         />
     </div>
     {#if !usernameValidation.isValid && username}
-        <div class="form-row validation-container">
+        <div class="validation-container">
             {#each usernameValidation.errors as error}
                 <p class="validation-error">{error}</p>
             {/each}
