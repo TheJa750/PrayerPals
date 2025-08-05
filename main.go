@@ -51,8 +51,9 @@ func main() {
 	router.HandleFunc("/api/health", handlers.HealthCheck).Methods("GET")
 
 	// User Account Handlers
-	router.HandleFunc("/api/users", cfg.CreateUserHandler).Methods("POST") // Expecting JSON body for username/email/password
-	router.HandleFunc("/api/login", cfg.LoginUserHandler).Methods("POST")  // Expecting JSON body for email/password
+	router.HandleFunc("/api/users", cfg.CreateUserHandler).Methods("POST")       // Expecting JSON body for username/email/password
+	router.HandleFunc("/api/users/update", cfg.UpdateUserHandler).Methods("PUT") // Expecting JSON body for username/password (1 only)
+	router.HandleFunc("/api/login", cfg.LoginUserHandler).Methods("POST")        // Expecting JSON body for email/password
 	router.HandleFunc("/api/refresh", cfg.RefreshJWTHandler).Methods("POST")
 	router.HandleFunc("/api/logout", cfg.LogoutUserHandler).Methods("POST")
 

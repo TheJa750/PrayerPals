@@ -25,10 +25,15 @@ TRUNCATE TABLE users CASCADE;
 DELETE FROM users
 WHERE id = $1;
 
--- name: UpdateUser :exec
+-- name: UpdateUserPassword :exec
 UPDATE users
-SET username = $2, email = $3, hashed_password = $4
-WHERE id = $1;
+SET hashed_password = $1
+WHERE id = $2;
+
+-- name: UpdateUsername :exec
+UPDATE users
+SET username = $1
+WHERE id = $2;
 
 -- name: GetUserGroupRole :one
 SELECT role

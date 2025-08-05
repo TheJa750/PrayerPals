@@ -105,6 +105,11 @@ type UserJoinGroup struct {
 	Role      string    `json:"role"` // e.g., "admin", "member"
 }
 
+type UpdateUserRequest struct {
+	Username string `json:"username"` // Optional, can be empty if not updating
+	Password string `json:"password"`
+}
+
 func ParseJSON[T any](r *http.Request) (T, error) {
 	var data T
 

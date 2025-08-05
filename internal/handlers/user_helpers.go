@@ -12,6 +12,7 @@ import (
 
 	"github.com/TheJa750/PrayerPals/internal/auth"
 	"github.com/TheJa750/PrayerPals/internal/database"
+	"github.com/TheJa750/PrayerPals/internal/validation"
 	"github.com/google/uuid"
 )
 
@@ -152,4 +153,48 @@ func (a *APIConfig) createUser(ctx context.Context, req UserRequest) (User, erro
 	}
 
 	return jsonUser, nil
+}
+
+func (a *APIConfig) updateUserPassword(ctx context.Context, userID uuid.UUID, newPassword string) error {
+	// Validate new password
+	validation := validation.ValidatePassword(newPassword)
+	if !validation.IsValid {
+		return fmt.Errorf("updateUserPassword: invalid password: %s", strings.Join(validation.Errors, ", "))
+	}
+
+	// Hash the new password
+	hashedPassword, err := auth.HashPassword(newPassword)
+	if err != nil {
+		return fmt.Errorf("updateUserPassword: error hashing new password: %w", err)
+	}
+
+	// Update the user's password in the database
+	err = a.DBQueries.UpdateUserPassword(ctx, database.UpdateUserPasswordParams{
+		HashedPassword: hashedPassword,
+		ID:             userID,
+	})
+	if err != nil {
+		return fmt.Errorf("updateUserPassword: error updating user password: %w", err)
+	}
+
+	return nil
+}
+
+func (a *APIConfig) updateUsername(ctx context.Context, userID uuid.UUID, newUsername string) error {
+	// Validate new username
+	validation := validation.ValidateUsername(newUsername)
+	if !validation.IsValid {
+		return fmt.Errorf("updateUsername: invalid username: %s", strings.Join(validation.Errors, ", "))
+	}
+
+	// Update the user's username in the database
+	err := a.DBQueries.UpdateUsername(ctx, database.UpdateUsernameParams{
+		Username: newUsername,
+		ID:       userID,
+	})
+	if err != nil {
+		return fmt.Errorf("updateUsername: error updating username: %w", err)
+	}
+
+	return nil
 }

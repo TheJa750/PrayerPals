@@ -185,3 +185,54 @@ func (a *APIConfig) LogoutUserHandler(w http.ResponseWriter, r *http.Request) {
 	log.Println("User logged out successfully")
 	w.WriteHeader(http.StatusNoContent)
 }
+
+func (a *APIConfig) UpdateUserHandler(w http.ResponseWriter, r *http.Request) {
+	// Parse request body for user data
+	userReq, err := ParseJSON[UpdateUserRequest](r)
+	if err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	// Validate user token
+	userID, err := a.getUserIDFromToken(r)
+	if err != nil {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	// Determine what to update
+	updateAttribute := ""
+	if userReq.Username == "" && userReq.Password == "" {
+		http.Error(w, "No fields to update", http.StatusBadRequest)
+		return
+	} else if userReq.Username == "" {
+		updateAttribute = "password"
+	} else if userReq.Password == "" {
+		updateAttribute = "username"
+	} else {
+		http.Error(w, "Cannot update multiple fields simultaneously", http.StatusBadRequest)
+		return
+	}
+
+	if updateAttribute == "password" {
+		err = a.updateUserPassword(r.Context(), userID, userReq.Password)
+		if err != nil {
+			log.Printf("Error updating user password: %v", err)
+			http.Error(w, "Error updating password", http.StatusInternalServerError)
+			return
+		}
+	}
+
+	if updateAttribute == "username" {
+		err = a.updateUsername(r.Context(), userID, userReq.Username)
+		if err != nil {
+			log.Printf("Error updating username: %v", err)
+			http.Error(w, "Error updating username", http.StatusInternalServerError)
+			return
+		}
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+	log.Printf("User %v updated successfully", userID)
+}

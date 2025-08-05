@@ -161,25 +161,34 @@ func (q *Queries) ResetUsers(ctx context.Context) error {
 	return err
 }
 
-const updateUser = `-- name: UpdateUser :exec
+const updateUserPassword = `-- name: UpdateUserPassword :exec
 UPDATE users
-SET username = $2, email = $3, hashed_password = $4
-WHERE id = $1
+SET hashed_password = $1
+WHERE id = $2
 `
 
-type UpdateUserParams struct {
-	ID             uuid.UUID
-	Username       string
-	Email          string
+type UpdateUserPasswordParams struct {
 	HashedPassword string
+	ID             uuid.UUID
 }
 
-func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) error {
-	_, err := q.db.ExecContext(ctx, updateUser,
-		arg.ID,
-		arg.Username,
-		arg.Email,
-		arg.HashedPassword,
-	)
+func (q *Queries) UpdateUserPassword(ctx context.Context, arg UpdateUserPasswordParams) error {
+	_, err := q.db.ExecContext(ctx, updateUserPassword, arg.HashedPassword, arg.ID)
+	return err
+}
+
+const updateUsername = `-- name: UpdateUsername :exec
+UPDATE users
+SET username = $1
+WHERE id = $2
+`
+
+type UpdateUsernameParams struct {
+	Username string
+	ID       uuid.UUID
+}
+
+func (q *Queries) UpdateUsername(ctx context.Context, arg UpdateUsernameParams) error {
+	_, err := q.db.ExecContext(ctx, updateUsername, arg.Username, arg.ID)
 	return err
 }
