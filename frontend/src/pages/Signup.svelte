@@ -1,5 +1,10 @@
 <script>
     import { apiRequest } from "../lib/api";
+    import {
+        validateEmail,
+        validatePassword,
+        validateUsername,
+    } from "../lib/validation";
 
     export let navigate;
 
@@ -12,8 +17,37 @@
     let errorMessage = "";
     let successMessage = "";
 
+    // Validation states
+    let usernameValidation = { isValid: true, errors: [] };
+    let emailValidation = { isValid: true, errors: [] };
+    let passwordValidation = { isValid: true, errors: [] };
+
+    // Reactive validation checks
+    $: usernameValidation = username
+        ? validateUsername(username)
+        : { isValid: true, errors: [] };
+    $: emailValidation = email
+        ? validateEmail(email)
+        : { isValid: true, errors: [] };
+    $: passwordValidation = password
+        ? validatePassword(password)
+        : { isValid: true, errors: [] };
+
+    // Check if form is valid
+    $: isFormValid =
+        usernameValidation.isValid &&
+        emailValidation.isValid &&
+        passwordValidation.isValid;
+
     async function handleSubmit(event) {
         event.preventDefault();
+
+        // Validate form before submission
+        if (!isFormValid) {
+            errorMessage =
+                "Please fix the errors in the form before submitting.";
+            return;
+        }
 
         isSubmitting = true;
         errorMessage = "";
@@ -82,10 +116,26 @@
             bind:value={username}
         />
     </div>
+    {#if !usernameValidation.isValid && username}
+        <div class="form-row validation-container">
+            {#each usernameValidation.errors as error}
+                <p class="validation-error">{error}</p>
+            {/each}
+        </div>
+    {/if}
+
     <div class="form-row">
         <label for="signup-email">Email:</label>
         <input type="email" id="signup-email" required bind:value={email} />
     </div>
+    {#if !emailValidation.isValid && email}
+        <div class="form-row validation-container">
+            {#each emailValidation.errors as error}
+                <p class="validation-error">{error}</p>
+            {/each}
+        </div>
+    {/if}
+
     <div class="form-row">
         <label for="signup-password">Password:</label>
         <input
@@ -95,6 +145,14 @@
             bind:value={password}
         />
     </div>
+    {#if !passwordValidation.isValid && password}
+        <div class="validation-container">
+            {#each passwordValidation.errors as error}
+                <p class="validation-error">{error}</p>
+            {/each}
+        </div>
+    {/if}
+
     {#if errorMessage || successMessage}
         <div class="form-row">
             {#if successMessage}

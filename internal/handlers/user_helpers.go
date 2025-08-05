@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/TheJa750/PrayerPals/internal/auth"
@@ -124,4 +125,31 @@ func (a *APIConfig) joinGroup(ctx context.Context, userID uuid.UUID, role, invit
 	}
 
 	return jsonResponse, nil
+}
+
+func (a *APIConfig) createUser(ctx context.Context, req UserRequest) (User, error) {
+	// Hash the password
+	hashedPassword, err := auth.HashPassword(req.Password)
+	if err != nil {
+		return User{}, fmt.Errorf("createUser: error hashing password: %w", err)
+	}
+
+	// Add user to the database
+	userData, err := a.DBQueries.CreateUser(ctx, database.CreateUserParams{
+		Username:       req.Username,
+		Email:          strings.ToLower(req.Email),
+		HashedPassword: hashedPassword,
+	})
+	if err != nil {
+		return User{}, fmt.Errorf("createUser: error creating user: %w", err)
+	}
+
+	// Create JSON response
+	jsonUser := User{
+		ID:       userData.ID,
+		Username: userData.Username,
+		Email:    userData.Email,
+	}
+
+	return jsonUser, nil
 }

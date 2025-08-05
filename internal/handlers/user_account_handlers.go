@@ -3,10 +3,11 @@ package handlers
 import (
 	"log"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/TheJa750/PrayerPals/internal/auth"
-	"github.com/TheJa750/PrayerPals/internal/database"
+	"github.com/TheJa750/PrayerPals/internal/validation"
 )
 
 func (a *APIConfig) CreateUserHandler(w http.ResponseWriter, r *http.Request) {
@@ -17,42 +18,31 @@ func (a *APIConfig) CreateUserHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Validate user input
 	if userReq.Username == "" || userReq.Email == "" || userReq.Password == "" {
 		http.Error(w, "Missing required fields", http.StatusBadRequest)
 		return
 	}
-
-	hashedPassword, err := auth.HashPassword(userReq.Password)
-	if err != nil {
-		http.Error(w, "Error hashing password", http.StatusInternalServerError)
+	validEmail := validation.ValidateEmail(userReq.Email)
+	if !validEmail.IsValid {
+		http.Error(w, strings.Join(validEmail.Errors, ", "), http.StatusBadRequest)
 		return
 	}
 
-	// Add user to the database
-	userData, err := a.DBQueries.CreateUser(r.Context(), database.CreateUserParams{
-		Username:       userReq.Username,
-		Email:          userReq.Email,
-		HashedPassword: hashedPassword,
-	})
+	user, err := a.createUser(r.Context(), userReq)
 	if err != nil {
+		log.Printf("Error creating user: %v", err)
 		http.Error(w, "Error creating user", http.StatusInternalServerError)
 		return
 	}
 
-	// Create JSON response
-	jsonUser := User{
-		ID:       userData.ID,
-		Username: userData.Username,
-		Email:    userData.Email,
-	}
-
-	err = CreateJSONResponse(jsonUser, w, http.StatusCreated)
+	err = CreateJSONResponse(user, w, http.StatusCreated)
 	if err != nil {
 		log.Printf("Error creating JSON response: %v", err)
 		return
 	}
 
-	log.Printf("User %s created successfully", userData.Username)
+	log.Printf("User %s created successfully", user.Username)
 }
 
 func (a *APIConfig) LoginUserHandler(w http.ResponseWriter, r *http.Request) {
@@ -69,7 +59,7 @@ func (a *APIConfig) LoginUserHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Retrieve user by email
-	userData, err := a.DBQueries.GetUserIDByEmail(r.Context(), loginReq.Email)
+	userData, err := a.DBQueries.GetUserIDByEmail(r.Context(), strings.ToLower(loginReq.Email))
 	if err != nil {
 		http.Error(w, "User not found", http.StatusNotFound)
 		return
