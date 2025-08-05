@@ -1,6 +1,6 @@
 # PrayerPals
 
-A simple web app for creating groups to post prayer requests.
+A simple web app for creating groups to share prayer requests.
 
 ## Current To-do/Roadmap
 
@@ -27,8 +27,9 @@ A simple web app for creating groups to post prayer requests.
     - [x] Add checks for leaving group as last user
   - [ ] Add access/refresh token handling
     - [x] Add ability to refresh access token if refresh token is valid
-    - [ ] Add endpoint/handler for revoking refresh token
-    - [ ] Add logic for revoking token on logout and password change
+    - [x] Add endpoint/handler for revoking refresh token
+    - [x] Add logic for revoking token on logout
+    - [ ] Add logic for revoking token on password change
   - [ ] Add ability to invite users to group
     - [x] Add custom invite code logic
     - [x] Add query for looking up group by invite code/edit join group logic to accomodate
@@ -47,9 +48,9 @@ A simple web app for creating groups to post prayer requests.
   - [x] Dashboard: show user’s groups and navigation
   - [x] Group pages: view group info and posts
   - [x] Create post form (use API endpoint)
-  - [ ] UI for joining/leaving groups
+  - [x] UI for joining/leaving groups
   - [ ] Admin controls for owners (assign roles, delete posts/groups)
-  - [ ] Display server/API error messages and loading states
+  - [x] Display server/API error messages and loading states
   - [x] Add styles for basic usability and mobile-responsiveness
 - [ ] **World Domination** *(if we get around to it)*
 - More coming soon...
