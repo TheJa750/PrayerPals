@@ -183,5 +183,5 @@ func (a *APIConfig) LogoutUserHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	log.Println("User logged out successfully")
-	w.WriteHeader(http.StatusFound)
+	w.WriteHeader(http.StatusNoContent)
 }
