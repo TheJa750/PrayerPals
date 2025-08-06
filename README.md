@@ -34,9 +34,9 @@ A simple web app for creating groups to share prayer requests.
     - [x] Add custom invite code logic
     - [x] Add query for looking up group by invite code/edit join group logic to accomodate
     - [ ] Add method for group admins to send invites to specific users (email is unique)
-  - [ ] Add Account features
-    - [ ] Add endpoint for changing username
-    - [ ] Add endpoint for changing password
+  - [x] Add Account features
+    - [x] Add endpoint for changing username
+    - [x] Add endpoint for changing password
 - [ ] **Build a UI**
   - [x] Set up project structure for static files (HTML, CSS, JS)
   - [x] Create a simple homepage with project branding/message
@@ -52,5 +52,41 @@ A simple web app for creating groups to share prayer requests.
   - [ ] Admin controls for owners (assign roles, delete posts/groups)
   - [x] Display server/API error messages and loading states
   - [x] Add styles for basic usability and mobile-responsiveness
+- [ ] **Security & Production Readiness**
+  - [ ] Security hardening
+    - [ ] Add rate limiting to prevent abuse
+    - [ ] Add input sanitization to prevent XSS attacks
+    - [ ] Add CSRF protection
+    - [x] Add password strength requirements (frontend + backend validation)
+    - [ ] Add account lockout after failed login attempts
+- [ ] **User Experience Enhancements**
+  - [ ] Enhanced UI/UX
+    - [ ] Add email/password requirements to signup page
+    - [ ] Add "forgot password" functionality
+    - [ ] Add user profile pages
+    - [ ] Add notification system
+    - [ ] Add search functionality (groups, posts, users)
+    - [ ] Add pagination for posts/comments feeds
+- [ ] **Community Features**
+  - [ ] Community building
+    - [ ] Add ability to @mention users in posts/comments
+    - [ ] Add post catgories/tags (prayer requests, praise reports)
+    - [ ] Add ability to mark prayer requests as answered
+    - [x] Add group announcements (pinned posts)
+    - [ ] Add member directory for groups
+- [ ] **Technical Improvements**
+  - [ ] Performance & reliability
+    - [ ] Add database connection pooling
+    - [ ] Add logging and monitoring
+    - [ ] Add automated backups
+    - [ ] Add health checks for database connectivity
+    - [ ] Add graceful shutdown handling
+- [ ] **Deployment**
+  - [ ] Set up CI/CD
+  - [ ] Production deployment
+    - [ ] Deploy to cloud service
+    - [ ] Set up Cloud SQL database
+    - [ ] Configure domain and SSL certificates
+    - [ ] Set up monitoring and alerting
 - [ ] **World Domination** *(if we get around to it)*
 - More coming soon...
