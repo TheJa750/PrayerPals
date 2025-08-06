@@ -47,3 +47,15 @@ WHERE invite_code = $1;
 UPDATE groups
 SET invite_code = $2
 WHERE id = $1;
+
+-- name: GetActiveMembers :many
+SELECT
+    users.id,
+    users.username,
+    users.email,
+    users_groups.role
+FROM users_groups
+JOIN users ON users.id = users_groups.user_id
+WHERE users_groups.group_id = $1
+AND NOT users_groups.is_banned
+AND NOT users_groups.is_kicked;

@@ -321,3 +321,93 @@ func (a *APIConfig) GetGroupInfoHandler(w http.ResponseWriter, r *http.Request) 
 
 	log.Printf("Group information retrieved successfully for group ID: %s", groupID)
 }
+
+func (a *APIConfig) GetGroupMembersHandler(w http.ResponseWriter, r *http.Request) {
+	// Validate JWT and extract user ID
+	userID, err := a.getUserIDFromToken(r)
+	if err != nil {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	// Parse the group ID from the URL path
+	groupID, err := parseUUIDPathParam(r, "group_id")
+	if err != nil {
+		http.Error(w, "Invalid group ID", http.StatusBadRequest)
+		return
+	}
+
+	// Check if the user is a member of the group
+	isMember, err := a.verifyUserInGroup(r.Context(), userID, groupID)
+	if err != nil {
+		http.Error(w, "Error verifying group membership", http.StatusInternalServerError)
+		return
+	}
+	if !isMember {
+		http.Error(w, "User is not a member of the group", http.StatusForbidden)
+		return
+	}
+
+	// Fetch group members
+	members, err := a.getGroupMembers(r.Context(), groupID)
+	if err != nil {
+		http.Error(w, "Error retrieving group members", http.StatusInternalServerError)
+		return
+	}
+
+	// Create JSON response
+	if err := CreateJSONResponse(members, w, http.StatusOK); err != nil {
+		log.Printf("Error creating JSON response: %v", err)
+		return
+	}
+
+	log.Printf("Group members retrieved successfully for group ID: %s", groupID)
+}
+
+func (a *APIConfig) GetUserGroupRoleHandler(w http.ResponseWriter, r *http.Request) {
+	// Validate JWT and extract user ID
+	userID, err := a.getUserIDFromToken(r)
+	if err != nil {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	// Parse the group ID and user ID from the URL path
+	groupID, err := parseUUIDPathParam(r, "group_id")
+	if err != nil {
+		http.Error(w, "Invalid group ID", http.StatusBadRequest)
+		return
+	}
+	targetUserID, err := parseUUIDPathParam(r, "user_id")
+	if err != nil {
+		http.Error(w, "Invalid user ID", http.StatusBadRequest)
+		return
+	}
+
+	if userID != targetUserID {
+		http.Error(w, "Unauthorized to view other user's role", http.StatusForbidden)
+		return
+	}
+
+	// Get the user's role in the group
+	role, err := a.getUserGroupRole(r.Context(), groupID, targetUserID)
+	if err != nil {
+		if errors.Is(err, ErrUserNotMember) {
+			http.Error(w, "User is not a member of the group", http.StatusForbidden)
+			return
+		}
+		http.Error(w, "Error retrieving user role in group", http.StatusInternalServerError)
+		return
+	}
+
+	response := GroupMember{
+		UserID: userID,
+		Role:   role,
+	}
+
+	// Create JSON response
+	if err := CreateJSONResponse(response, w, http.StatusOK); err != nil {
+		log.Printf("Error creating JSON response: %v", err)
+		return
+	}
+}

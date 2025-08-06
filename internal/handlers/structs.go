@@ -110,6 +110,13 @@ type UpdateUserRequest struct {
 	Password string `json:"password"`
 }
 
+type GroupMember struct {
+	UserID   uuid.UUID `json:"user_id"`
+	Username string    `json:"username"`
+	Email    string    `json:"email"`
+	Role     string    `json:"role"` // e.g., "admin", "member"
+}
+
 func ParseJSON[T any](r *http.Request) (T, error) {
 	var data T
 

@@ -72,6 +72,54 @@ func (q *Queries) DeleteGroup(ctx context.Context, id uuid.UUID) error {
 	return err
 }
 
+const getActiveMembers = `-- name: GetActiveMembers :many
+SELECT
+    users.id,
+    users.username,
+    users.email,
+    users_groups.role
+FROM users_groups
+JOIN users ON users.id = users_groups.user_id
+WHERE users_groups.group_id = $1
+AND NOT users_groups.is_banned
+AND NOT users_groups.is_kicked
+`
+
+type GetActiveMembersRow struct {
+	ID       uuid.UUID
+	Username string
+	Email    string
+	Role     string
+}
+
+func (q *Queries) GetActiveMembers(ctx context.Context, groupID uuid.UUID) ([]GetActiveMembersRow, error) {
+	rows, err := q.db.QueryContext(ctx, getActiveMembers, groupID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetActiveMembersRow
+	for rows.Next() {
+		var i GetActiveMembersRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Username,
+			&i.Email,
+			&i.Role,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getGroupByID = `-- name: GetGroupByID :one
 SELECT id, name, description, created_at, updated_at, owner_id, invite_code
 FROM groups

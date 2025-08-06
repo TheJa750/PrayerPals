@@ -341,3 +341,46 @@ func (a *APIConfig) getGroupByID(ctx context.Context, userID, groupID uuid.UUID)
 
 	return jsonGroup, nil
 }
+
+func (a *APIConfig) getGroupMembers(ctx context.Context, groupID uuid.UUID) ([]GroupMember, error) {
+	// Fetch group members
+	members, err := a.DBQueries.GetActiveMembers(ctx, groupID)
+	if err != nil {
+		return nil, fmt.Errorf("error retrieving group members: %w", err)
+	}
+
+	// Convert database members to API GroupMember structs
+	jsonMembers := make([]GroupMember, len(members))
+	for i, member := range members {
+		jsonMembers[i] = GroupMember{
+			UserID:   member.ID,
+			Role:     member.Role,
+			Email:    member.Email,
+			Username: member.Username,
+		}
+	}
+
+	return jsonMembers, nil
+}
+
+func (a *APIConfig) getUserGroupRole(ctx context.Context, userID, groupID uuid.UUID) (string, error) {
+	// Verify if the user is a member of the group
+	isMember, err := a.verifyUserInGroup(ctx, userID, groupID)
+	if err != nil {
+		return "", err
+	}
+	if !isMember {
+		return "", ErrUserNotMember
+	}
+
+	// Fetch the user's role in the group
+	role, err := a.DBQueries.GetUserGroupRole(ctx, database.GetUserGroupRoleParams{
+		UserID:  userID,
+		GroupID: groupID,
+	})
+	if err != nil {
+		return "", fmt.Errorf("error retrieving user role in group: %w", err)
+	}
+
+	return role, nil
+}
