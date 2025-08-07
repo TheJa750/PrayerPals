@@ -390,7 +390,7 @@ func (a *APIConfig) GetUserGroupRoleHandler(w http.ResponseWriter, r *http.Reque
 	}
 
 	// Get the user's role in the group
-	role, err := a.getUserGroupRole(r.Context(), groupID, targetUserID)
+	role, err := a.getUserGroupRole(r.Context(), userID, groupID)
 	if err != nil {
 		if errors.Is(err, ErrUserNotMember) {
 			http.Error(w, "User is not a member of the group", http.StatusForbidden)

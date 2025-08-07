@@ -5,7 +5,7 @@ A simple web app for creating groups to share prayer requests.
 ## Current To-do/Roadmap
 
 - [x] Get functional server base
-- [ ] **Build an API**
+- [x] **Build an API**
   - [x] Add endpoint and handler for checking server health
   - [x] Add endpoint and handler for creating user
     - [x] Add auth package for password hashing
@@ -25,11 +25,11 @@ A simple web app for creating groups to share prayer requests.
   - [x] Add ability for users to leave groups
     - [x] Add checks for leaving group as owner/admin
     - [x] Add checks for leaving group as last user
-  - [ ] Add access/refresh token handling
+  - [x] Add access/refresh token handling
     - [x] Add ability to refresh access token if refresh token is valid
     - [x] Add endpoint/handler for revoking refresh token
     - [x] Add logic for revoking token on logout
-    - [ ] Add logic for revoking token on password change
+    - [x] Add logic for revoking token on password change
   - [ ] Add ability to invite users to group
     - [x] Add custom invite code logic
     - [x] Add query for looking up group by invite code/edit join group logic to accomodate
@@ -37,7 +37,7 @@ A simple web app for creating groups to share prayer requests.
   - [x] Add Account features
     - [x] Add endpoint for changing username
     - [x] Add endpoint for changing password
-- [ ] **Build a UI**
+- [x] **Build a UI**
   - [x] Set up project structure for static files (HTML, CSS, JS)
   - [x] Create a simple homepage with project branding/message
   - [x] Add user registration form
