@@ -467,6 +467,7 @@ label:hover {
 .post-header {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   margin-bottom: 30px;
   gap: 15px;
 }
@@ -1082,4 +1083,12 @@ label:hover {
   overflow: hidden;
   clip: rect(1px, 1px, 1px, 1px);
   white-space: nowrap;
+}
+
+.h-50 {
+  height: 50%;
+}
+
+.w-50 {
+  width: 50%;
 }

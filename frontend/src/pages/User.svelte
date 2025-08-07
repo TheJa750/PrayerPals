@@ -151,7 +151,10 @@
         groupPreview = null;
 
         try {
-            const response = await apiRequest(`/groups/${inviteCode}`, "GET");
+            const response = await apiRequest(
+                `/groups/invite/${inviteCode}`,
+                "GET",
+            );
             groupPreview = response;
         } catch (error) {
             console.error("Error previewing group:", error);
@@ -176,7 +179,7 @@
 
         try {
             const joinResponse = await apiRequest(
-                `/groups/${inviteCode}/join`,
+                `/groups/invite/${inviteCode}/join`,
                 "POST",
             );
 
@@ -437,7 +440,7 @@
                         </div>
 
                         {#if joinGroupError}
-                            <div class="error-message">
+                            <div class="error-message text-center">
                                 {joinGroupError}
                             </div>
                         {/if}

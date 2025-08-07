@@ -13,22 +13,34 @@
     let isLoadingPosts = true;
     let loadGroupError = "";
     let loadPostError = "";
+    let userRole = "member";
+    let isAdmin = false;
+    let userId = localStorage.getItem("userId");
 
     // Create post modal data
     let newPostContent = "";
     let isCreatingPost = false;
     let createPostError = "";
 
+    // Delete post modal data
+    let deletePostId = null;
+    let isDeletingPost = false;
+    let deletePostError = "";
+
     //Modal states
     let showCreatePostModal = false;
+    let showDeletePostModal = false;
     let showMembersModal = false;
+    let showErrorModal = false;
 
     // Load group data on mount
-    onMount(() => {
+    onMount(async () => {
+        await checkUserRole();
         loadGroupData();
         loadGroupPosts();
     });
 
+    // Data Loading Functions
     async function loadGroupData() {
         try {
             isLoadingGroup = true;
@@ -71,6 +83,34 @@
         }
     }
 
+    async function checkUserRole() {
+        try {
+            const roleData = await apiRequest(
+                `/groups/${groupId}/members/${userId}`,
+                "GET",
+            );
+
+            userRole = roleData.role || "member";
+            isAdmin = userRole === "admin";
+        } catch (error) {
+            console.error("Error checking user role:", error);
+
+            if (error.message === REFRESH_ERROR_MESSAGE) {
+                navigate("login");
+                return;
+            }
+
+            showErrorModal = true;
+            loadGroupError = error.message || "Failed to check user role.";
+
+            setTimeout(() => {
+                navigate("user");
+            }, 2500); // Delay to show error message before returning
+
+            return;
+        }
+    }
+
     // Modal Functions
     function openCreatePostModal() {
         showCreatePostModal = true;
@@ -80,6 +120,19 @@
 
     function closeCreatePostModal() {
         showCreatePostModal = false;
+    }
+
+    function openDeletePostModal(id) {
+        deletePostId = id;
+        isDeletingPost = false;
+        showDeletePostModal = true;
+        deletePostError = "";
+    }
+
+    function closeDeletePostModal() {
+        showDeletePostModal = false;
+        deletePostId = null;
+        isDeletingPost = false;
     }
 
     async function handleCreatePost(event) {
@@ -113,6 +166,40 @@
                 error.message || "Failed to create post. Please try again.";
         } finally {
             isCreatingPost = false;
+        }
+    }
+
+    async function handleDeletePost(event) {
+        event.preventDefault();
+
+        if (!deletePostId) {
+            deletePostError = "No post selected for deletion.";
+            return;
+        }
+
+        isDeletingPost = true;
+        deletePostError = "";
+
+        try {
+            await apiRequest(
+                `/groups/${groupId}/posts/${deletePostId}`,
+                "DELETE",
+            );
+
+            closeDeletePostModal();
+            await loadGroupPosts(); // Reload posts after deletion
+        } catch (error) {
+            console.error("Error deleting post:", error);
+
+            if (error.message === REFRESH_ERROR_MESSAGE) {
+                navigate("login");
+                return;
+            }
+
+            deletePostError =
+                error.message || "Failed to delete post. Please try again.";
+        } finally {
+            isDeletingPost = false;
         }
     }
 
@@ -187,6 +274,15 @@
                     >
                         <div class="post-header">
                             <h3>{post.author}</h3>
+                            {#if isAdmin || post.user_id === userId}
+                                <button
+                                    class="close-button"
+                                    on:click|stopPropagation={() =>
+                                        openDeletePostModal(post.id)}
+                                >
+                                    ×
+                                </button>
+                            {/if}
                         </div>
                         <div class="post-body">
                             <p>{post.content}</p>
@@ -211,6 +307,23 @@
         </section>
     </div>
 </div>
+
+<!-- Error Modal -->
+{#if showErrorModal}
+    <div class="modal-overlay" role="dialog" aria-modal="true" tabindex="-1">
+        <!-- svelte-ignore a11y_click_events_have_key_events -->
+        <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
+        <div
+            class="modal-content text-center h-50 w-50"
+            on:click|stopPropagation
+            role="document"
+        >
+            <h2>Error:</h2>
+            <p>{loadGroupError}</p>
+            <p>Returning to your dashboard...</p>
+        </div>
+    </div>
+{/if}
 
 <!-- Create Post Modal -->
 {#if showCreatePostModal}
@@ -264,6 +377,55 @@
                     </button>
                 </div>
             </form>
+        </div>
+    </div>
+{/if}
+
+{#if showDeletePostModal}
+    <div
+        class="modal-overlay"
+        on:click={closeDeletePostModal}
+        on:keydown={(e) => e.key === "Escape" && closeDeletePostModal()}
+        role="dialog"
+        aria-modal="true"
+        tabindex="-1"
+    >
+        <!-- svelte-ignore a11y-click-events-have-key-events -->
+        <!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
+        <div
+            class="modal-content text-center"
+            on:click|stopPropagation
+            role="document"
+        >
+            <div class="modal-header">
+                <h2>Delete Post</h2>
+                <button class="close-button" on:click={closeDeletePostModal}>
+                    ×
+                </button>
+            </div>
+
+            {#if deletePostError}
+                <div class="error-message">{deletePostError}</div>
+            {/if}
+
+            <p>Are you sure you want to delete this post?</p>
+
+            <div class="modal-actions">
+                <button
+                    type="button"
+                    on:click={closeDeletePostModal}
+                    disabled={isDeletingPost}
+                >
+                    Cancel
+                </button>
+                <button
+                    type="button"
+                    on:click={handleDeletePost}
+                    disabled={isDeletingPost}
+                >
+                    {isDeletingPost ? "Deleting..." : "Delete"}
+                </button>
+            </div>
         </div>
     </div>
 {/if}

@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"errors"
+	"log"
 	"net/http"
 	"strconv"
 	"strings"
@@ -52,6 +53,8 @@ func parseInviteCodePathParam(r *http.Request, key string) (string, error) {
 			return "", ErrInvalidCode
 		}
 	}
+
+	log.Printf("Invite code raw value: '%s' (len=%d)", valStr, len(valStr))
 
 	return valStr, nil
 }

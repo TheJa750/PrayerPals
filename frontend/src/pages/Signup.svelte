@@ -79,6 +79,7 @@
                 );
 
                 //Successfully logged in, navigate to home
+                localStorage.setItem("userId", loginResponse.id);
                 successMessage = "Logged in! Redirecting to your dashboard...";
 
                 // clear form fields

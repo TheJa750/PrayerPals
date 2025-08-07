@@ -24,6 +24,7 @@
             const response = await apiRequest("/login", "POST", loginData);
 
             // Successfully logged in, navigate to home
+            localStorage.setItem("userId", response.id);
             successMessage = "Logged in! Redirecting to your dashboard...";
 
             // Clear form fields

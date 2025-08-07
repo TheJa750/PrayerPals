@@ -58,7 +58,7 @@ func main() {
 	router.HandleFunc("/api/logout", cfg.LogoutUserHandler).Methods("POST")
 
 	// User Functions Handlers
-	router.HandleFunc("/api/groups/{invite_code}/join", cfg.JoinGroupHandler).Methods("POST")
+	router.HandleFunc("/api/groups/invite/{invite_code}/join", cfg.JoinGroupHandler).Methods("POST")
 	router.HandleFunc("/api/groups/{group_id}/join", cfg.LeaveGroupHandler).Methods("DELETE")
 	router.HandleFunc("/api/groups", cfg.GetGroupsForFeed).Methods("GET")
 
@@ -69,7 +69,7 @@ func main() {
 	router.HandleFunc("/api/groups/{group_id}/posts", cfg.GetPostFeedHandler).Methods("GET")                     // Expecting query parameters ?limit=10&offset=0
 	router.HandleFunc("/api/groups/{group_id}", cfg.DeleteGroupHandler).Methods("DELETE")
 	router.HandleFunc("/api/groups/{group_id}/members/{user_id}/moderate", cfg.ModerateUserHandler).Methods("PUT") // Expecting JSON body for action and reason
-	router.HandleFunc("/api/groups/{invite_code}", cfg.GroupFromInviteCodeHandler).Methods("GET")
+	router.HandleFunc("/api/groups/invite/{invite_code}", cfg.GroupFromInviteCodeHandler).Methods("GET")
 	router.HandleFunc("/api/groups/{group_id}/members", cfg.GetGroupMembersHandler).Methods("GET")            // Expecting group_id in URL
 	router.HandleFunc("/api/groups/{group_id}/members/{user_id}", cfg.GetUserGroupRoleHandler).Methods("GET") // Expecting group_id and user_id in URL
 
