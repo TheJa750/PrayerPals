@@ -4,6 +4,9 @@
     import { REFRESH_ERROR_MESSAGE } from "../lib/api";
     import { validatePassword, validateUsername } from "../lib/validation";
 
+    import CreateGroupModal from "../components/CreateGroupModal.svelte";
+    import JoinGroupModal from "../components/JoinGroupModal.svelte";
+
     export let navigate;
 
     // User data
@@ -114,8 +117,18 @@
         changeError = "";
     }
 
+    function handleModalFieldUpdate(event) {
+        const { id, value } = event.detail;
+        if (id === "group-name") {
+            newGroupName = value;
+        } else if (id === "group-description") {
+            newGroupDescription = value;
+        }
+    }
+
     async function handleCreateGroup(event) {
         event.preventDefault();
+        console.log("Creating group:", newGroupName, newGroupDescription);
         isCreatingGroup = true;
         createGroupError = "";
 
@@ -329,193 +342,30 @@
 
     <!-- Create Group Modal -->
     {#if showCreateGroupModal}
-        <div
-            class="modal-overlay"
-            on:click={closeCreateGroupModal}
-            on:keydown={(e) => e.key === "Escape" && closeCreateGroupModal()}
-            role="dialog"
-            aria-modal="true"
-            tabindex="-1"
-        >
-            <!-- svelte-ignore a11y-click-events-have-key-events -->
-            <!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
-            <div class="modal-content" on:click|stopPropagation role="document">
-                <div class="modal-header">
-                    <h2>Create New Group</h2>
-                    <button
-                        class="close-button"
-                        on:click={closeCreateGroupModal}
-                    >
-                        &times;
-                    </button>
-                </div>
-
-                {#if createGroupError}
-                    <div class="error-message">
-                        {createGroupError}
-                    </div>
-                {/if}
-
-                <form on:submit={handleCreateGroup}>
-                    <div class="form-row">
-                        <label for="group-name">Group Name:</label>
-                        <input
-                            type="text"
-                            id="group-name"
-                            required
-                            bind:value={newGroupName}
-                            disabled={isLoadingPreview}
-                            placeholder="Enter group name"
-                        />
-                    </div>
-
-                    <div class="form-row">
-                        <label for="group-description"
-                            >Description (optional):</label
-                        >
-                        <textarea
-                            id="group-description"
-                            bind:value={newGroupDescription}
-                            disabled={isCreatingGroup}
-                            placeholder="Describe your group..."
-                            rows="3"
-                        ></textarea>
-                    </div>
-
-                    <div class="modal-actions">
-                        <button
-                            type="button"
-                            on:click={closeCreateGroupModal}
-                            disabled={isCreatingGroup}
-                        >
-                            Cancel
-                        </button>
-                        <button type="submit" disabled={isCreatingGroup}>
-                            {isCreatingGroup ? "Creating..." : "Create Group"}
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
+        <CreateGroupModal
+            on:close={closeCreateGroupModal}
+            on:updateField={handleModalFieldUpdate}
+            on:submit={handleCreateGroup}
+            {newGroupName}
+            {newGroupDescription}
+            isCreating={isCreatingGroup}
+            error={createGroupError}
+        />
     {/if}
 
     <!-- Join Group Modal -->
     {#if showJoinGroupModal}
-        <div
-            class="modal-overlay"
-            on:click={closeJoinGroupModal}
-            on:keydown={(e) => e.key === "Escape" && closeJoinGroupModal()}
-            role="dialog"
-            aria-modal="true"
-            tabindex="-1"
-        >
-            {#if !groupPreview}
-                <!-- svelte-ignore a11y-click-events-have-key-events -->
-                <!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
-                <div
-                    class="modal-content"
-                    on:click|stopPropagation
-                    role="document"
-                >
-                    <div class="modal-header">
-                        <h2>Enter Invite Code</h2>
-                        <button
-                            class="close-button"
-                            on:click={closeJoinGroupModal}
-                        >
-                            &times;
-                        </button>
-                    </div>
-
-                    <form on:submit={handlePreviewGroup}>
-                        <div class="form-row">
-                            <label for="invite-code">Invite Code:</label>
-                            <input
-                                type="text"
-                                id="invite-code"
-                                bind:value={inviteCode}
-                                required
-                                placeholder="Enter invite code"
-                            />
-                        </div>
-
-                        {#if joinGroupError}
-                            <div class="error-message text-center">
-                                {joinGroupError}
-                            </div>
-                        {/if}
-
-                        <div class="modal-actions">
-                            <button
-                                type="button"
-                                on:click={closeJoinGroupModal}
-                                disabled={isLoadingPreview}
-                            >
-                                Cancel
-                            </button>
-                            <button type="submit" disabled={isLoadingPreview}>
-                                {isLoadingPreview ? "Loading..." : "Find Group"}
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            {:else}
-                <!-- svelte-ignore a11y-click-events-have-key-events -->
-                <!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
-                <div
-                    class="modal-content"
-                    on:click|stopPropagation
-                    role="document"
-                >
-                    <div class="modal-header">
-                        <h2>Join Group</h2>
-                        <button
-                            class="close-button"
-                            on:click={closeJoinGroupModal}
-                        >
-                            &times;
-                        </button>
-                    </div>
-
-                    <div
-                        class="group-card clickable"
-                        on:click={handleJoinGroup}
-                        role="button"
-                        tabindex="0"
-                    >
-                        <h3>{groupPreview.name}</h3>
-                        {#if groupPreview.description}
-                            <p class="group-description">
-                                {groupPreview.description}
-                            </p>
-                        {/if}
-                    </div>
-
-                    {#if joinGroupError}
-                        <div class="error-message">
-                            {joinGroupError}
-                        </div>
-                    {/if}
-
-                    <div class="modal-actions">
-                        <button
-                            type="button"
-                            on:click={closeJoinGroupModal}
-                            disabled={isJoiningGroup}
-                        >
-                            Cancel
-                        </button>
-                        <button
-                            type="button"
-                            disabled={isJoiningGroup}
-                            on:click={handleJoinGroup}
-                        >
-                            Join
-                        </button>
-                    </div>
-                </div>
-            {/if}
-        </div>
+        <JoinGroupModal
+            on:close={closeJoinGroupModal}
+            on:updateCode={(e) => (inviteCode = e.detail)}
+            on:preview={handlePreviewGroup}
+            on:join={handleJoinGroup}
+            {inviteCode}
+            {isLoadingPreview}
+            {groupPreview}
+            {isJoiningGroup}
+            error={joinGroupError}
+        />
     {/if}
 
     <!-- Change Username/Password Modal -->

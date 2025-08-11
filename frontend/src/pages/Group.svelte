@@ -2,6 +2,9 @@
     import { onMount } from "svelte";
     import { apiRequest } from "../lib/api";
     import { REFRESH_ERROR_MESSAGE } from "../lib/api";
+    import CreatePostModal from "../components/CreatePostModal.svelte";
+    import DeletePostModal from "../components/DeletePostModal.svelte";
+    import GroupMembersModal from "../components/GroupMembersModal.svelte";
 
     export let navigate;
     export let groupId;
@@ -26,6 +29,11 @@
     let deletePostId = null;
     let isDeletingPost = false;
     let deletePostError = "";
+
+    // Members modal data
+    let members = [];
+    let isLoadingMembers = false;
+    let loadMembersError = "";
 
     //Modal states
     let showCreatePostModal = false;
@@ -135,6 +143,19 @@
         isDeletingPost = false;
     }
 
+    function openMembersModal() {
+        showMembersModal = true;
+        fetchMembers();
+    }
+
+    function closeMembersModal() {
+        showMembersModal = false;
+    }
+
+    function handleModalContentUpdate(event) {
+        newPostContent = event.detail;
+    }
+
     async function handleCreatePost(event) {
         event.preventDefault();
         if (!newPostContent.trim()) {
@@ -211,6 +232,31 @@
             date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
         );
     }
+
+    async function fetchMembers() {
+        isLoadingMembers = true;
+        loadMembersError = "";
+
+        try {
+            const membersData = await apiRequest(
+                `/groups/${groupId}/members`,
+                "GET",
+            );
+            members = membersData || [];
+        } catch (error) {
+            console.error("Error loading group members:", error);
+
+            if (error.message === REFRESH_ERROR_MESSAGE) {
+                navigate("login");
+                return;
+            }
+
+            loadMembersError =
+                "Failed to load group members. Please try again later.";
+        } finally {
+            isLoadingMembers = false;
+        }
+    }
 </script>
 
 <div class="group-container">
@@ -247,7 +293,9 @@
                 <button class="action-button" on:click={openCreatePostModal}
                     >New Request</button
                 >
-                <button class="action-button">View Members</button>
+                <button class="action-button" on:click={openMembersModal}
+                    >View Members</button
+                >
                 <button class="action-button">Leave Group</button>
             </div>
         </section>
@@ -327,105 +375,34 @@
 
 <!-- Create Post Modal -->
 {#if showCreatePostModal}
-    <div
-        class="modal-overlay"
-        on:click={closeCreatePostModal}
-        on:keydown={(e) => e.key === "Escape" && closeCreatePostModal()}
-        role="dialog"
-        aria-modal="true"
-        tabindex="-1"
-    >
-        <!-- svelte-ignore a11y-click-events-have-key-events -->
-        <!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
-        <div class="modal-content" on:click|stopPropagation role="document">
-            <div class="modal-header">
-                <h2>New Prayer Request</h2>
-                <button class="close-button" on:click={closeCreatePostModal}>
-                    ×
-                </button>
-            </div>
-
-            {#if createPostError}
-                <div class="error-message">{createPostError}</div>
-            {/if}
-
-            <form on:submit={handleCreatePost}>
-                <div class="form-row">
-                    <label for="post-content" class="visually-hidden"
-                        >Prayer Request:</label
-                    >
-                    <textarea
-                        id="post-content"
-                        required
-                        bind:value={newPostContent}
-                        disabled={isCreatingPost}
-                        placeholder="Share your prayer request with the group..."
-                        rows="5"
-                    ></textarea>
-                </div>
-
-                <div class="modal-actions">
-                    <button
-                        type="button"
-                        on:click={closeCreatePostModal}
-                        disabled={isCreatingPost}
-                    >
-                        Cancel
-                    </button>
-                    <button type="submit" disabled={isCreatingPost}>
-                        {isCreatingPost ? "Posting..." : "Post Request"}
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
+    <CreatePostModal
+        {newPostContent}
+        isCreating={isCreatingPost}
+        error={createPostError}
+        on:updateContent={handleModalContentUpdate}
+        on:close={closeCreatePostModal}
+        on:submit={handleCreatePost}
+    />
 {/if}
 
+<!-- Delete Post Modal -->
 {#if showDeletePostModal}
-    <div
-        class="modal-overlay"
-        on:click={closeDeletePostModal}
-        on:keydown={(e) => e.key === "Escape" && closeDeletePostModal()}
-        role="dialog"
-        aria-modal="true"
-        tabindex="-1"
-    >
-        <!-- svelte-ignore a11y-click-events-have-key-events -->
-        <!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
-        <div
-            class="modal-content text-center"
-            on:click|stopPropagation
-            role="document"
-        >
-            <div class="modal-header">
-                <h2>Delete Post</h2>
-                <button class="close-button" on:click={closeDeletePostModal}>
-                    ×
-                </button>
-            </div>
+    <DeletePostModal
+        isDeleting={isDeletingPost}
+        error={deletePostError}
+        on:close={closeDeletePostModal}
+        on:submit={handleDeletePost}
+    />
+{/if}
 
-            {#if deletePostError}
-                <div class="error-message">{deletePostError}</div>
-            {/if}
-
-            <p>Are you sure you want to delete this post?</p>
-
-            <div class="modal-actions">
-                <button
-                    type="button"
-                    on:click={closeDeletePostModal}
-                    disabled={isDeletingPost}
-                >
-                    Cancel
-                </button>
-                <button
-                    type="button"
-                    on:click={handleDeletePost}
-                    disabled={isDeletingPost}
-                >
-                    {isDeletingPost ? "Deleting..." : "Delete"}
-                </button>
-            </div>
-        </div>
-    </div>
+<!-- Group Members Modal -->
+{#if showMembersModal}
+    <GroupMembersModal
+        {members}
+        inviteCode={group ? group.invite_code : ""}
+        isLoading={isLoadingMembers}
+        error={loadMembersError}
+        {isAdmin}
+        on:close={closeMembersModal}
+    />
 {/if}

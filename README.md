@@ -49,7 +49,10 @@ A simple web app for creating groups to share prayer requests.
   - [x] Group pages: view group info and posts
   - [x] Create post form (use API endpoint)
   - [x] UI for joining/leaving groups
-  - [ ] Admin controls for owners (assign roles, delete posts/groups)
+  - [ ] Admin controls for owners
+    - [x] Delete posts
+    - [ ] Delete group
+    - [ ] Moderate members
   - [x] Display server/API error messages and loading states
   - [x] Add styles for basic usability and mobile-responsiveness
 - [ ] **Security & Production Readiness**
