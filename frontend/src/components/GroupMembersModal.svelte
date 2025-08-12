@@ -31,7 +31,7 @@
     >
         <div class="modal-header">
             <h2>{inviteCode}</h2>
-            <h2>Group Members</h2>
+            <h2>Group Members ({members.length})</h2>
             <button class="close-button ml-close" on:click={handleClose}>
                 &times;
             </button>
@@ -50,6 +50,16 @@
                 {#each members as member}
                     {#if member.role !== "member"}
                         <li>{member.username} - {member.role}</li>
+                    {:else if isAdmin}
+                        <li>
+                            {member.username}
+                            <button
+                                class="close-button"
+                                on:click={() => dispatch("remove", member)}
+                            >
+                                &times;
+                            </button>
+                        </li>
                     {:else}
                         <li>{member.username}</li>
                     {/if}

@@ -35,11 +35,18 @@
     let isLoadingMembers = false;
     let loadMembersError = "";
 
+    // Member moderation modal data
+    let targetMember = null;
+    let action = "";
+    let reason = "";
+    let moderationError = "";
+
     //Modal states
     let showCreatePostModal = false;
     let showDeletePostModal = false;
     let showMembersModal = false;
     let showErrorModal = false;
+    let showMemberModerationModal = false;
 
     // Load group data on mount
     onMount(async () => {
@@ -257,6 +264,55 @@
             isLoadingMembers = false;
         }
     }
+
+    function showModerateMember(event) {
+        event.preventDefault();
+        targetMember = event.detail;
+
+        // Close member modal and open confirmation modal
+        showMembersModal = false;
+        showMemberModerationModal = true;
+    }
+
+    function closeMemberModerationModal() {
+        showMemberModerationModal = false;
+        targetMember = null;
+        action = "";
+        reason = "";
+        moderationError = "";
+    }
+
+    async function handleModerationAction(event) {
+        event.preventDefault();
+
+        if (!action || !targetMember) {
+            return; // Ensure action and target member are selected
+        }
+
+        try {
+            const reqData = {
+                action: action,
+                reason: reason || "No reason provided",
+            };
+            await apiRequest(
+                `/groups/${groupId}/members/${targetMember.user_id}/moderate`,
+                "PUT",
+                reqData,
+            );
+
+            closeMemberModerationModal();
+            await fetchMembers(); // Refresh members list after moderation
+            openMembersModal(); // Reopen members modal to show updated list
+        } catch (error) {
+            console.error("Error moderating member:", error);
+            if (error.message === REFRESH_ERROR_MESSAGE) {
+                navigate("login");
+                return;
+            }
+            moderationError =
+                error.message || "Failed to moderate member. Please try again.";
+        }
+    }
 </script>
 
 <div class="group-container">
@@ -404,5 +460,70 @@
         error={loadMembersError}
         {isAdmin}
         on:close={closeMembersModal}
+        on:remove={showModerateMember}
     />
+{/if}
+
+<!-- Member Moderation Modal -->
+{#if showMemberModerationModal}
+    <div class="modal-overlay" role="dialog" aria-modal="true" tabindex="-1">
+        <!-- svelte-ignore a11y_click_events_have_key_events -->
+        <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
+        <div
+            class="modal-content text-center h-50 w-50"
+            on:click|stopPropagation
+            role="document"
+        >
+            <div class="modal-header">
+                <h2>Moderate {targetMember.username}</h2>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="form-row">
+                        <label for="moderation-action">Select Action:</label>
+                        <select
+                            id="moderation-action"
+                            bind:value={action}
+                            required
+                        >
+                            <option value="" disabled selected
+                                >Select action</option
+                            >
+                            <option value="kick"
+                                >Kick from Group (lasts 1 week)</option
+                            >
+                            <option value="ban"
+                                >Ban from Group (permanent)</option
+                            >
+                        </select>
+                    </div>
+                    <div class="form-row">
+                        <label for="moderation-reason">Reason:</label>
+                        <textarea
+                            id="moderation-reason"
+                            rows="3"
+                            placeholder="Enter reason for moderation action"
+                            required
+                            bind:value={reason}
+                        ></textarea>
+                    </div>
+                    <div class="modal-actions">
+                        <button
+                            type="button"
+                            on:click={closeMemberModerationModal}
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            type="submit"
+                            on:click={handleModerationAction}
+                            disabled={!action || !reason}
+                        >
+                            Confirm
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 {/if}

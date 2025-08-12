@@ -235,7 +235,7 @@ func (a *APIConfig) ModerateUserHandler(w http.ResponseWriter, r *http.Request) 
 		groupID,
 		targetUserID,
 		userID,
-		moderateReq.Action,
+		strings.ToLower(moderateReq.Action),
 		moderateReq.Reason,
 	)
 	if err != nil {
