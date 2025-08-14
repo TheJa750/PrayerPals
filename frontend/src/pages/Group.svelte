@@ -40,6 +40,7 @@
     let action = "";
     let reason = "";
     let moderationError = "";
+    let deletePosts = false;
 
     //Modal states
     let showCreatePostModal = false;
@@ -290,6 +291,7 @@
         }
 
         try {
+            // Make moderation API call
             const reqData = {
                 action: action,
                 reason: reason || "No reason provided",
@@ -299,6 +301,8 @@
                 "PUT",
                 reqData,
             );
+
+            // Remove posts if checkbox is checked
 
             closeMemberModerationModal();
             await fetchMembers(); // Refresh members list after moderation
@@ -506,6 +510,16 @@
                             required
                             bind:value={reason}
                         ></textarea>
+                    </div>
+                    <div class="form-row">
+                        <label for="remove-posts"
+                            >Remove all posts by {targetMember.username}</label
+                        >
+                        <input
+                            type="checkbox"
+                            id="remove-posts"
+                            bind:checked={deletePosts}
+                        />
                     </div>
                     <div class="modal-actions">
                         <button

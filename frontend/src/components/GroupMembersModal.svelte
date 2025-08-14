@@ -7,10 +7,18 @@
     export let inviteCode = "";
     export let isAdmin = false;
 
+    let copied = false;
+
     const dispatch = createEventDispatcher();
 
     function handleClose() {
         dispatch("close");
+    }
+
+    function copyInviteCode() {
+        navigator.clipboard.writeText(inviteCode);
+        copied = true;
+        setTimeout(() => (copied = false), 2000);
     }
 </script>
 
@@ -30,7 +38,15 @@
         role="document"
     >
         <div class="modal-header">
-            <h2>{inviteCode}</h2>
+            <div>
+                <h3>Invite Code:</h3>
+                <h3 class="invite-code" on:click={copyInviteCode}>
+                    {inviteCode}
+                </h3>
+                {#if copied}
+                    <div class="copied-popup">Copied!</div>
+                {/if}
+            </div>
             <h2>Group Members ({members.length})</h2>
             <button class="close-button ml-close" on:click={handleClose}>
                 &times;

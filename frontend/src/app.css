@@ -589,6 +589,7 @@ label:hover {
   align-items: center;
   padding: 20px 20px 10px 20px;
   border-bottom: 1px solid var(--border-separator);
+  position: relative;
 }
 
 .modal-header h2 {
@@ -698,6 +699,24 @@ label:hover {
 
 .member-list li:hover {
   background: var(--background-hover);
+}
+
+.invite-code {
+  cursor: pointer;
+  position: relative;
+}
+
+.copied-popup {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  padding: 4px 12px;
+  border-radius: 4px;
+  font-size: 0.9em;
+  z-index: 100;
+  animation: fadeout 2s forwards;
+  color: var(--background-white);
+  background: var(--text-dark)
 }
 
 .banner-flex {
@@ -1045,6 +1064,20 @@ label:hover {
 
   .post-header .back-button {
     font-size: 1.2rem;
+  }
+}
+
+@keyframes fadeout {
+  0% {
+    opactiy: 1;
+  }
+
+  80% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
   }
 }
 
