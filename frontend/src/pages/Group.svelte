@@ -303,6 +303,12 @@
             );
 
             // Remove posts if checkbox is checked
+            if (deletePosts) {
+                await apiRequest(
+                    `/groups/${groupId}/members/${targetMember.user_id}/remove-content`,
+                    "PUT",
+                );
+            }
 
             closeMemberModerationModal();
             await fetchMembers(); // Refresh members list after moderation

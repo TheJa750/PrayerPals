@@ -78,7 +78,7 @@ func main() {
 	router.HandleFunc("/api/groups/{group_id}/posts/{post_id}", cfg.DeletePostHandler).Methods("DELETE")
 	router.HandleFunc("/api/groups/{group_id}/posts/{post_id}/comments", cfg.CreateCommentHandler).Methods("POST") // Expecting JSON body for comment content
 	router.HandleFunc("/api/groups/{group_id}/posts/{post_id}/comments", cfg.GetCommentsForPostHandler).Methods("GET")
-	router.HandleFunc("/api/groups/{group_id}/members/{user_id}/remove-content", cfg.RemoveUserContentHandler).Methods("POST") // Expecting group_id and user_id in URL
+	router.HandleFunc("/api/groups/{group_id}/members/{user_id}/remove-content", cfg.RemoveUserContentHandler).Methods("PUT") // Expecting group_id and user_id in URL
 
 	log.Fatal(svr.ListenAndServe())
 }
