@@ -84,6 +84,22 @@ func (q *Queries) KickUser(ctx context.Context, arg KickUserParams) error {
 	return err
 }
 
+const removePostsByUser = `-- name: RemovePostsByUser :exec
+UPDATE posts
+SET is_deleted = TRUE, updated_at = NOW()
+WHERE user_id = $1 AND group_id = $2 AND is_deleted = FALSE
+`
+
+type RemovePostsByUserParams struct {
+	UserID  uuid.UUID
+	GroupID uuid.UUID
+}
+
+func (q *Queries) RemovePostsByUser(ctx context.Context, arg RemovePostsByUserParams) error {
+	_, err := q.db.ExecContext(ctx, removePostsByUser, arg.UserID, arg.GroupID)
+	return err
+}
+
 const unbanUser = `-- name: UnbanUser :exec
 UPDATE users_groups
 SET is_banned = FALSE, kicked_until = NULL, modded_reason = '',

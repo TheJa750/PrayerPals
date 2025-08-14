@@ -185,3 +185,30 @@ func (a *APIConfig) getPostWithComments(ctx context.Context, userID, postID uuid
 
 	return jsonPost, nil
 }
+
+func (a *APIConfig) removePostsByUser(ctx context.Context, userID, groupID, targetID uuid.UUID) error {
+	// Verify if the requester is an admin in the group
+	isMember, err := a.verifyUserInGroup(ctx, userID, groupID)
+	if err != nil {
+		return err // error will be ErrUserNotMember or a DB query error
+	}
+	if !isMember {
+		return ErrUserNotMember
+	}
+
+	err = a.isAdmin(ctx, userID, groupID)
+	if err != nil {
+		return err // error will be ErrUserNotAdmin or a DB query error
+	}
+
+	// Remove posts by the target user in the group
+	err = a.DBQueries.RemovePostsByUser(ctx, database.RemovePostsByUserParams{
+		UserID:  targetID,
+		GroupID: groupID,
+	})
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

@@ -20,3 +20,8 @@ UPDATE users_groups
 SET is_kicked = TRUE, kicked_until = NOW() + INTERVAL '7 days', modded_reason = $3,
     modded_at = NOW(), modded_by = $4
 WHERE user_id = $1 AND group_id = $2;
+
+-- name: RemovePostsByUser :exec
+UPDATE posts
+SET is_deleted = TRUE, updated_at = NOW()
+WHERE user_id = $1 AND group_id = $2 AND is_deleted = FALSE;

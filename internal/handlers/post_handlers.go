@@ -195,3 +195,35 @@ func (a *APIConfig) GetCommentsForPostHandler(w http.ResponseWriter, r *http.Req
 
 	log.Printf("User %v fetched comments for post %v", userID, postID)
 }
+
+func (a *APIConfig) RemoveUserContentHandler(w http.ResponseWriter, r *http.Request) {
+	// Validate JWT and extract admin user ID
+	userID, err := a.getUserIDFromToken(r)
+	if err != nil {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	// Extract group ID and target user ID from URL parameters
+	groupID, err := parseUUIDPathParam(r, "group_id")
+	if err != nil {
+		http.Error(w, "Invalid group ID", http.StatusBadRequest)
+		return
+	}
+	targetID, err := parseUUIDPathParam(r, "user_id")
+	if err != nil {
+		http.Error(w, "Invalid user ID", http.StatusBadRequest)
+		return
+	}
+
+	err = a.removePostsByUser(r.Context(), userID, groupID, targetID)
+	if err != nil {
+		if errors.Is(err, ErrUserNotMember) || errors.Is(err, ErrUserNotAdmin) {
+			http.Error(w, err.Error(), http.StatusForbidden)
+			return
+		}
+		http.Error(w, "Failed to remove posts by user", http.StatusInternalServerError)
+		return
+	}
+
+}
