@@ -310,6 +310,7 @@
                 );
             }
 
+            await loadGroupPosts(); // Reload posts after moderation
             closeMemberModerationModal();
             await fetchMembers(); // Refresh members list after moderation
             openMembersModal(); // Reopen members modal to show updated list
