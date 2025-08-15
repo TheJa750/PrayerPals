@@ -11,18 +11,36 @@
   import GroupSettings from "./pages/GroupSettings.svelte";
 
   // Page state variable: 'home' | 'login' | 'signup'
-  let page = "home";
-  let groupId = null; // For group navigation
-  let postId = null; // For post navigation
+  let page = localStorage.getItem("page") || "home";
+  let groupId = localStorage.getItem("groupId"); // For group navigation
+  let postId = localStorage.getItem("postId"); // For post navigation
 
   // Navigation helper—pass to child components (for SPA-feeling in-app nav)
   function navigate(where, gId = null, pId = null) {
     page = where;
+    localStorage.setItem("page", page);
+
     if (gId !== null) {
       groupId = gId;
+      localStorage.setItem("groupId", groupId);
     }
+
     if (pId !== null) {
       postId = pId;
+      localStorage.setItem("postId", postId);
+    }
+
+    // Clear localStorage for pages that dont need them
+    if (
+      where === "home" ||
+      where === "login" ||
+      where === "signup" ||
+      where === "user"
+    ) {
+      localStorage.removeItem("groupId");
+    }
+    if (where !== "post") {
+      localStorage.removeItem("postId");
     }
   }
 </script>
