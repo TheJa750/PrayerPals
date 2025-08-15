@@ -419,6 +419,12 @@
         <section class="group-section side-section">
             <h2>Group Info</h2>
             <p>Ground rules and announcements go here</p>
+            <button
+                class="action-button"
+                hidden={!isAdmin}
+                on:click={() => navigate("groupSettings", groupId)}
+                >Group Settings</button
+            >
         </section>
     </div>
 </div>

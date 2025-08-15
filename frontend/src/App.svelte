@@ -8,6 +8,7 @@
   import Group from "./pages/Group.svelte";
   import Post from "./pages/Post.svelte";
   import Logout from "./components/Logout.svelte";
+  import GroupSettings from "./pages/GroupSettings.svelte";
 
   // Page state variable: 'home' | 'login' | 'signup'
   let page = "home";
@@ -69,6 +70,8 @@
       <Group {navigate} {groupId} />
     {:else if page === "post"}
       <Post {navigate} {groupId} {postId} />
+    {:else if page === "groupSettings"}
+      <GroupSettings {navigate} {groupId} />
     {:else}
       <p>Page not found</p>
     {/if}
