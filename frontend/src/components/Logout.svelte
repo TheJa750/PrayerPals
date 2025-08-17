@@ -19,4 +19,4 @@
     }
 </script>
 
-<button on:click={handleLogout}>Logout</button>
+<button class="banner-btn" on:click={handleLogout}>Logout</button>

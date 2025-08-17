@@ -804,6 +804,7 @@ label:hover {
 
     --primary-green-light: var(--primary-green-light);
     --primary-green-accent: var(--primary-green-light);
+    --primary-green-header: var(--primary-green-medium);
 
     --success-green: var(--success-alt);
     --error-red: var(--error-alt);
@@ -841,6 +842,20 @@ label:hover {
     background: var(--background-light);
     border-color: var(--border-input);
     color: var(--text-primary);
+  }
+
+  .form-row button {
+    background: var(--primary-green-medium);
+    color: var(--text-muted);
+  }
+
+  .form-row .toggle-password {
+    background: none;
+  }
+
+  .form-row .toggle-password:hover,
+  .form-row .toggle-password:focus {
+    background: none;
   }
 
   .form-row input:focus,
