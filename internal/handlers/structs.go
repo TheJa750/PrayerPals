@@ -55,7 +55,8 @@ type Group struct {
 	Name        string    `json:"name"`
 	Description string    `json:"description"`
 	OwnerID     uuid.UUID `json:"owner_id"`
-	InviteCode  string    `json:"invite_code"` // New field for invite code
+	InviteCode  string    `json:"invite_code"`
+	RulesInfo   string    `json:"rules_info"`
 }
 
 type PostRequest struct {

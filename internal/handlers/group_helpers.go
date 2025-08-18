@@ -360,6 +360,7 @@ func (a *APIConfig) getGroupByID(ctx context.Context, userID, groupID uuid.UUID)
 		Description: group.Description.String,
 		OwnerID:     group.OwnerID.UUID,
 		InviteCode:  group.InviteCode,
+		RulesInfo:   group.RulesInfo,
 	}
 
 	return jsonGroup, nil
