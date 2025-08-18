@@ -411,3 +411,39 @@ func (a *APIConfig) GetUserGroupRoleHandler(w http.ResponseWriter, r *http.Reque
 		return
 	}
 }
+
+func (a *APIConfig) ChangeInviteCodeHandler(w http.ResponseWriter, r *http.Request) {
+	// Validate JWT and extract user ID
+	userID, err := a.getUserIDFromToken(r)
+	if err != nil {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	// Parse the group ID from the URL path
+	groupID, err := parseUUIDPathParam(r, "group_id")
+	if err != nil {
+		http.Error(w, "Invalid group ID", http.StatusBadRequest)
+		return
+	}
+
+	// Parse the new invite code from the request body
+	code, err := ParseJSON[UpdateInviteCodeRequest](r)
+	if err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	err = a.updateGroupInviteCode(r.Context(), userID, groupID, code.InviteCode)
+	if err != nil {
+		if errors.Is(err, ErrUserNotAdmin) {
+			http.Error(w, "User is not an admin of the group", http.StatusForbidden)
+			return
+		}
+		http.Error(w, "Error updating invite code", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+	log.Printf("Invite code updated successfully for group %v by user %v", groupID, userID)
+}

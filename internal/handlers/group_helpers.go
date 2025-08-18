@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/TheJa750/PrayerPals/internal/database"
+	"github.com/TheJa750/PrayerPals/internal/validation"
 	"github.com/google/uuid"
 )
 
@@ -302,9 +303,27 @@ func (a *APIConfig) getGroupByInviteCode(ctx context.Context, inviteCode string)
 	return jsonGroup, nil
 }
 
-func (a *APIConfig) updateGroupInviteCode(ctx context.Context, groupID uuid.UUID, newInviteCode string) error {
+func (a *APIConfig) updateGroupInviteCode(ctx context.Context, userID, groupID uuid.UUID, newInviteCode string) error {
+	// Verify the user is an admin of the group
+	err := a.isAdmin(ctx, userID, groupID)
+	if err != nil {
+		return err
+	}
+
+	// Trim whitespace and capitalize the invite code
+	newInviteCode = strings.TrimSpace(strings.ToUpper(newInviteCode))
+
+	// Validate the new invite code
+	result := validation.ValidateInviteCode(newInviteCode)
+
+	if !result.IsValid {
+		return fmt.Errorf("invalid invite code: %s", strings.Join(result.Errors, ", "))
+	}
+
+	newInviteCode = generateInviteCode(newInviteCode) // Generate a new invite code with the provided prefix
+
 	// Update the invite code for the group
-	err := a.DBQueries.UpdateGroupInviteCode(ctx, database.UpdateGroupInviteCodeParams{
+	err = a.DBQueries.UpdateGroupInviteCode(ctx, database.UpdateGroupInviteCodeParams{
 		ID:         groupID,
 		InviteCode: newInviteCode,
 	})

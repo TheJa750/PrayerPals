@@ -117,6 +117,10 @@ type GroupMember struct {
 	Role     string    `json:"role"` // e.g., "admin", "member"
 }
 
+type UpdateInviteCodeRequest struct {
+	InviteCode string `json:"invite_code"` // New invite code to set for the group
+}
+
 func ParseJSON[T any](r *http.Request) (T, error) {
 	var data T
 

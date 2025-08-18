@@ -72,6 +72,7 @@ func main() {
 	router.HandleFunc("/api/groups/invite/{invite_code}", cfg.GroupFromInviteCodeHandler).Methods("GET")
 	router.HandleFunc("/api/groups/{group_id}/members", cfg.GetGroupMembersHandler).Methods("GET")            // Expecting group_id in URL
 	router.HandleFunc("/api/groups/{group_id}/members/{user_id}", cfg.GetUserGroupRoleHandler).Methods("GET") // Expecting group_id and user_id in URL
+	router.HandleFunc("/api/groups/{group_id}/invite-code", cfg.ChangeInviteCodeHandler).Methods("PUT")       // Expecting group_id in URL and new invite code in JSON body
 
 	// Post Handlers
 	router.HandleFunc("/api/groups/{group_id}/posts", cfg.CreatePostHandler).Methods("POST") // Expecting JSON body for post content

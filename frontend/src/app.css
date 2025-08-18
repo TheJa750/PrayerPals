@@ -587,6 +587,18 @@ label:hover {
   text-align: left;
 }
 
+.card-action-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 1.5em;
+}
+
+.card-action-row .action-button {
+  width: 20%;
+  margin: 0;
+}
+
 /* Modal styles */
 .modal-overlay {
   position: fixed;

@@ -90,3 +90,27 @@ export function validateEmail(email) {
         errors: errors
     };
 }
+
+// Validate Group Invite Code
+export function validateInviteCode(code) {
+    const errors = [];
+    const minLength = 1;
+    const maxLength = 6;
+
+    const validChars = /^[a-zA-Z0-9]+$/;
+
+    if (code.length < minLength) {
+        errors.push(`Invite code must be at least ${minLength} character long.`);
+    }
+    if (code.length > maxLength) {
+        errors.push(`Invite code must be at most ${maxLength} characters long.`);
+    }
+    if (!validChars.test(code)) {
+        errors.push("Invite code can only contain letters and numbers.");
+    }
+
+    return {
+        isValid: errors.length === 0,
+        errors: errors
+    };
+}
