@@ -117,3 +117,51 @@ func (q *Queries) UnbanUser(ctx context.Context, arg UnbanUserParams) error {
 	_, err := q.db.ExecContext(ctx, unbanUser, arg.UserID, arg.GroupID, arg.ModdedBy)
 	return err
 }
+
+const updateGroupDescription = `-- name: UpdateGroupDescription :exec
+UPDATE groups
+SET description = $2
+WHERE id = $1
+`
+
+type UpdateGroupDescriptionParams struct {
+	ID          uuid.UUID
+	Description sql.NullString
+}
+
+func (q *Queries) UpdateGroupDescription(ctx context.Context, arg UpdateGroupDescriptionParams) error {
+	_, err := q.db.ExecContext(ctx, updateGroupDescription, arg.ID, arg.Description)
+	return err
+}
+
+const updateGroupInviteCode = `-- name: UpdateGroupInviteCode :exec
+UPDATE groups
+SET invite_code = $2
+WHERE id = $1
+`
+
+type UpdateGroupInviteCodeParams struct {
+	ID         uuid.UUID
+	InviteCode string
+}
+
+func (q *Queries) UpdateGroupInviteCode(ctx context.Context, arg UpdateGroupInviteCodeParams) error {
+	_, err := q.db.ExecContext(ctx, updateGroupInviteCode, arg.ID, arg.InviteCode)
+	return err
+}
+
+const updateGroupRules = `-- name: UpdateGroupRules :exec
+UPDATE groups
+SET rules_info = $2
+WHERE id = $1
+`
+
+type UpdateGroupRulesParams struct {
+	ID        uuid.UUID
+	RulesInfo string
+}
+
+func (q *Queries) UpdateGroupRules(ctx context.Context, arg UpdateGroupRulesParams) error {
+	_, err := q.db.ExecContext(ctx, updateGroupRules, arg.ID, arg.RulesInfo)
+	return err
+}

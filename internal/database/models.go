@@ -19,6 +19,7 @@ type Group struct {
 	UpdatedAt   sql.NullTime
 	OwnerID     uuid.NullUUID
 	InviteCode  string
+	RulesInfo   string
 }
 
 type Post struct {

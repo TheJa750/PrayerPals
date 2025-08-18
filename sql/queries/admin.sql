@@ -25,3 +25,18 @@ WHERE user_id = $1 AND group_id = $2;
 UPDATE posts
 SET is_deleted = TRUE, updated_at = NOW()
 WHERE user_id = $1 AND group_id = $2 AND is_deleted = FALSE;
+
+-- name: UpdateGroupInviteCode :exec
+UPDATE groups
+SET invite_code = $2
+WHERE id = $1;
+
+-- name: UpdateGroupDescription :exec
+UPDATE groups
+SET description = $2
+WHERE id = $1;
+
+-- name: UpdateGroupRules :exec
+UPDATE groups
+SET rules_info = $2
+WHERE id = $1;

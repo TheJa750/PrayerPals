@@ -43,11 +43,6 @@ WHERE group_id = $1 AND role != 'member';
 SELECT * FROM groups
 WHERE invite_code = $1;
 
--- name: UpdateGroupInviteCode :exec
-UPDATE groups
-SET invite_code = $2
-WHERE id = $1;
-
 -- name: GetActiveMembers :many
 SELECT
     users.id,
