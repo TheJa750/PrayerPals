@@ -447,3 +447,46 @@ func (a *APIConfig) ChangeInviteCodeHandler(w http.ResponseWriter, r *http.Reque
 	w.WriteHeader(http.StatusNoContent)
 	log.Printf("Invite code updated successfully for group %v by user %v", groupID, userID)
 }
+
+func (a *APIConfig) ChangeGroupRulesHandler(w http.ResponseWriter, r *http.Request) {
+	// Validate JWT and extract user ID
+	userID, err := a.getUserIDFromToken(r)
+	if err != nil {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	// Parse the group ID from the URL path
+	groupID, err := parseUUIDPathParam(r, "group_id")
+	if err != nil {
+		http.Error(w, "Invalid group ID", http.StatusBadRequest)
+		return
+	}
+
+	// Parse the new rules from the request body
+	rules, err := ParseJSON[UpdateGroupRulesRequest](r)
+	if err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	// Update the group rules in the database
+	err = a.changeGroupRules(r.Context(), userID, groupID, rules.Rules)
+	if err != nil {
+		if errors.Is(err, ErrUserNotAdmin) {
+			http.Error(w, "User is not an admin of the group", http.StatusForbidden)
+			return
+		}
+		if errors.Is(err, ErrRulesTooLong) {
+			http.Error(w, "Rules text is too long", http.StatusBadRequest)
+			return
+		}
+		http.Error(w, "Error updating group rules", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+	log.Printf("Group rules updated successfully for group %v by user %v", groupID, userID)
+}
+
+func (a *APIConfig) ChangeGroupDescriptionHandler(w http.ResponseWriter, r *http.Request) {}

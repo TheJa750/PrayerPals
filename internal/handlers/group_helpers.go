@@ -15,14 +15,18 @@ import (
 	"github.com/google/uuid"
 )
 
-var ErrUserNotMember = errors.New("user is not a member of the group")
-var ErrUserIsOnlyAdmin = errors.New("cannot leave group as the only admin")
-var ErrUserIsLastMember = errors.New("cannot leave group as the last member")
-var ErrInvalidRole = errors.New("invalid role specified")
-var ErrUserHasRole = errors.New("user already has the specified role")
-var ErrUserNotAdmin = errors.New("user is not an admin of group")
-var ErrInvalidID = errors.New("missing or invalid UUID parameter")
-var ErrCannotModAdmin = errors.New("cannot moderate an admin")
+var (
+	ErrUserNotMember    = errors.New("user is not a member of the group")
+	ErrUserIsOnlyAdmin  = errors.New("cannot leave group as the only admin")
+	ErrUserIsLastMember = errors.New("cannot leave group as the last member")
+	ErrInvalidRole      = errors.New("invalid role specified")
+	ErrUserHasRole      = errors.New("user already has the specified role")
+	ErrUserNotAdmin     = errors.New("user is not an admin of group")
+	ErrInvalidID        = errors.New("missing or invalid UUID parameter")
+	ErrCannotModAdmin   = errors.New("cannot moderate an admin")
+	ErrInvalidJWT       = errors.New("invalid JWT token")
+	ErrRulesTooLong     = errors.New("group rules cannot exceed 1500 characters")
+)
 
 func (a *APIConfig) leaveGroupChecks(ctx context.Context, userID, groupID uuid.UUID) error {
 	// Verify if the user is a member of the group
@@ -402,4 +406,27 @@ func (a *APIConfig) getUserGroupRole(ctx context.Context, userID, groupID uuid.U
 	}
 
 	return role, nil
+}
+
+func (a *APIConfig) changeGroupRules(ctx context.Context, userID, groupID uuid.UUID, newRules string) error {
+	// Verify the user is an admin of the group
+	err := a.isAdmin(ctx, userID, groupID)
+	if err != nil {
+		return err
+	}
+
+	// Validate the new rules
+	if len(newRules) > 1500 { // Example validation: max length of 1500 characters
+		return ErrRulesTooLong
+	}
+
+	err = a.DBQueries.UpdateGroupRules(ctx, database.UpdateGroupRulesParams{
+		ID:        groupID,
+		RulesInfo: newRules,
+	})
+	if err != nil {
+		return fmt.Errorf("error updating group rules: %w", err)
+	}
+
+	return nil
 }
