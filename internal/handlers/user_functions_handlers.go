@@ -92,27 +92,12 @@ func (a *APIConfig) GetGroupsForFeed(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Fetch groups for the user from the database
-	groupIDs, err := a.DBQueries.GetGroupsForUser(r.Context(), userID)
+	// Fetch groups for the user
+	jsonGroups, err := a.fetchGroupsForUser(r.Context(), userID)
 	if err != nil {
-		http.Error(w, "Failed to fetch groups", http.StatusInternalServerError)
+		log.Printf("Error fetching groups for user %v: %v", userID, err)
+		http.Error(w, "Error fetching groups", http.StatusInternalServerError)
 		return
-	}
-
-	// Create slice of JSON groups for response
-	jsonGroups := make([]Group, len(groupIDs))
-	for i, groupID := range groupIDs {
-		group, err := a.DBQueries.GetGroupByID(r.Context(), groupID)
-		if err != nil {
-			log.Printf("Failed to fetch group %v: %v", groupID, err)
-		}
-
-		jsonGroups[i] = Group{
-			ID:          group.ID,
-			Name:        group.Name,
-			OwnerID:     group.OwnerID.UUID,
-			Description: group.Description.String,
-		}
 	}
 
 	err = CreateJSONResponse(jsonGroups, w, http.StatusOK)

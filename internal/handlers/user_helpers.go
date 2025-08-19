@@ -198,3 +198,22 @@ func (a *APIConfig) updateUsername(ctx context.Context, userID uuid.UUID, newUse
 
 	return nil
 }
+
+func (a *APIConfig) fetchGroupsForUser(ctx context.Context, userID uuid.UUID) ([]Group, error) {
+	groups, err := a.DBQueries.GetGroupsForUser(ctx, userID)
+	if err != nil {
+		return nil, fmt.Errorf("fetchGroupsForUser: error retrieving groups for user: %w", err)
+	}
+
+	var jsonGroups []Group
+	for _, group := range groups {
+		jsonGroups = append(jsonGroups, Group{
+			ID:          group.ID,
+			Name:        group.Name,
+			Description: group.Description.String,
+			OwnerID:     group.OwnerID.UUID,
+		})
+	}
+
+	return jsonGroups, nil
+}

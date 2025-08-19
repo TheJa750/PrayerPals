@@ -30,9 +30,12 @@ FROM users_groups
 WHERE group_id = $1;
 
 -- name: GetGroupsForUser :many
-SELECT group_id
+SELECT groups.id, groups.name, groups.description, groups.owner_id
 FROM users_groups
-WHERE user_id = $1;
+JOIN groups ON users_groups.group_id = groups.id
+WHERE users_groups.user_id = $1
+AND users_groups.is_banned = false
+AND users_groups.is_kicked = false;
 
 -- name: GetGroupSpecialRoles :many
 SELECT user_id, role

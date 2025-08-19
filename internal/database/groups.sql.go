@@ -228,24 +228,39 @@ func (q *Queries) GetGroupSpecialRoles(ctx context.Context, groupID uuid.UUID) (
 }
 
 const getGroupsForUser = `-- name: GetGroupsForUser :many
-SELECT group_id
+SELECT groups.id, groups.name, groups.description, groups.owner_id
 FROM users_groups
-WHERE user_id = $1
+JOIN groups ON users_groups.group_id = groups.id
+WHERE users_groups.user_id = $1
+AND users_groups.is_banned = false
+AND users_groups.is_kicked = false
 `
 
-func (q *Queries) GetGroupsForUser(ctx context.Context, userID uuid.UUID) ([]uuid.UUID, error) {
+type GetGroupsForUserRow struct {
+	ID          uuid.UUID
+	Name        string
+	Description sql.NullString
+	OwnerID     uuid.NullUUID
+}
+
+func (q *Queries) GetGroupsForUser(ctx context.Context, userID uuid.UUID) ([]GetGroupsForUserRow, error) {
 	rows, err := q.db.QueryContext(ctx, getGroupsForUser, userID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []uuid.UUID
+	var items []GetGroupsForUserRow
 	for rows.Next() {
-		var group_id uuid.UUID
-		if err := rows.Scan(&group_id); err != nil {
+		var i GetGroupsForUserRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.Description,
+			&i.OwnerID,
+		); err != nil {
 			return nil, err
 		}
-		items = append(items, group_id)
+		items = append(items, i)
 	}
 	if err := rows.Close(); err != nil {
 		return nil, err
