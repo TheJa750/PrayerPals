@@ -5,6 +5,8 @@
     import CreatePostModal from "../components/CreatePostModal.svelte";
     import DeletePostModal from "../components/DeletePostModal.svelte";
     import GroupMembersModal from "../components/GroupMembersModal.svelte";
+    import DOMPurify from "dompurify";
+    import { marked } from "marked";
 
     export let navigate;
     export let groupId;
@@ -19,6 +21,7 @@
     let userRole = "member";
     let isAdmin = false;
     let userId = localStorage.getItem("userId");
+    let rules = null;
 
     // Create post modal data
     let newPostContent = "";
@@ -64,6 +67,8 @@
 
             const groupData = await apiRequest(`/groups/${groupId}`, "GET");
             group = groupData;
+
+            rules = marked(groupData.rules_info) || "";
         } catch (error) {
             console.error("Error loading group data:", error);
 
@@ -418,7 +423,13 @@
         <!-- Right: Group Info -->
         <section class="group-section side-section">
             <h2>Group Info</h2>
-            <p>Ground rules and announcements go here</p>
+            {#if rules}
+                <div class="group-rules">
+                    {@html DOMPurify.sanitize(rules)}
+                </div>
+            {:else}
+                <p>Ground rules and announcements go here</p>
+            {/if}
             <button
                 class="action-button"
                 hidden={!isAdmin}
