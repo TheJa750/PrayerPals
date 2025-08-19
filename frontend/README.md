@@ -45,6 +45,3 @@ If you have state that's important to retain within a component, consider creati
 import { writable } from 'svelte/store'
 export default writable(0)
 ```
-
-Custom cross cursor from:
-<a target="_blank" href="https://icons8.com/icon/22879/christian-cross">Christian Cross</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
