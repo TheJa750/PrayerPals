@@ -21,6 +21,12 @@ SET is_kicked = TRUE, kicked_until = NOW() + INTERVAL '7 days', modded_reason = 
     modded_at = NOW(), modded_by = $4
 WHERE user_id = $1 AND group_id = $2;
 
+-- name: ResetKickStatus :exec
+UPDATE users_groups
+SET is_kicked = FALSE, kicked_until = NULL, modded_at = NOW(),
+    modded_reason = modded_reason || ' - Kick has expired'
+WHERE user_id = $1 AND group_id = $2;
+
 -- name: RemovePostsByUser :exec
 UPDATE posts
 SET is_deleted = TRUE, updated_at = NOW()

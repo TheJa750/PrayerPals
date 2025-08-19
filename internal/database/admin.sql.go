@@ -100,6 +100,23 @@ func (q *Queries) RemovePostsByUser(ctx context.Context, arg RemovePostsByUserPa
 	return err
 }
 
+const resetKickStatus = `-- name: ResetKickStatus :exec
+UPDATE users_groups
+SET is_kicked = FALSE, kicked_until = NULL, modded_at = NOW(),
+    modded_reason = modded_reason || ' - Kick has expired'
+WHERE user_id = $1 AND group_id = $2
+`
+
+type ResetKickStatusParams struct {
+	UserID  uuid.UUID
+	GroupID uuid.UUID
+}
+
+func (q *Queries) ResetKickStatus(ctx context.Context, arg ResetKickStatusParams) error {
+	_, err := q.db.ExecContext(ctx, resetKickStatus, arg.UserID, arg.GroupID)
+	return err
+}
+
 const unbanUser = `-- name: UnbanUser :exec
 UPDATE users_groups
 SET is_banned = FALSE, kicked_until = NULL, modded_reason = '',
