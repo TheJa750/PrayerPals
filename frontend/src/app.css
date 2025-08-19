@@ -653,6 +653,21 @@ label:hover {
   color: var(--neutral-close-hover);
 }
 
+.promote-button {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: var(--neutral-close);
+  padding: 0px 0px 3px 0px;
+  width: 30px;
+  height: 30px;
+}
+
+.promote-button:hover {
+  color: var(--neutral-close-hover);
+}
+
 .modal-content form {
   padding: 20px;
   max-width: 650px;

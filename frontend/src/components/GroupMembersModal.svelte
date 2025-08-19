@@ -65,7 +65,7 @@
             <ul class="member-list">
                 {#each members as member}
                     {#if member.role !== "member"}
-                        <li>{member.username} - {member.role}</li>
+                        <li>{member.username} - ★ {member.role}</li>
                     {:else if isAdmin}
                         <li>
                             {member.username}
@@ -74,6 +74,12 @@
                                 on:click={() => dispatch("remove", member)}
                             >
                                 &times;
+                            </button>
+                            <button
+                                class="promote-button"
+                                on:click={() => dispatch("promote", member)}
+                            >
+                                ★
                             </button>
                         </li>
                     {:else}

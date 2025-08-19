@@ -5,6 +5,7 @@
     import CreatePostModal from "../components/CreatePostModal.svelte";
     import DeletePostModal from "../components/DeletePostModal.svelte";
     import GroupMembersModal from "../components/GroupMembersModal.svelte";
+    import LeaveGroupModal from "../components/LeaveGroupModal.svelte";
     import DOMPurify from "dompurify";
     import { marked } from "marked";
 
@@ -51,6 +52,17 @@
     let showMembersModal = false;
     let showErrorModal = false;
     let showMemberModerationModal = false;
+    let showLeaveModal = false;
+    let showPromoteMemberModal = false;
+
+    // Leave group modal data
+    let leaveGroupError = "";
+    let isLeaving = false;
+
+    // Member Promotion Modal data
+    let promoteMemberError = "";
+    let isPromoting = false;
+    // Member promotion also uses targetMember from moderation modal
 
     // Load group data on mount
     onMount(async () => {
@@ -163,6 +175,14 @@
 
     function closeMembersModal() {
         showMembersModal = false;
+    }
+
+    function openLeaveModal() {
+        showLeaveModal = true;
+    }
+
+    function closeLeaveModal() {
+        showLeaveModal = false;
     }
 
     function handleModalContentUpdate(event) {
@@ -288,6 +308,22 @@
         moderationError = "";
     }
 
+    function showPromoteMember(event) {
+        event.preventDefault();
+        targetMember = event.detail;
+
+        // Close member modal and open promotion modal
+        showMembersModal = false;
+        showPromoteMemberModal = true;
+    }
+
+    function closePromoteMemberModal() {
+        showPromoteMemberModal = false;
+        targetMember = null;
+        promoteMemberError = "";
+        isPromoting = false;
+    }
+
     async function handleModerationAction(event) {
         event.preventDefault();
 
@@ -329,6 +365,63 @@
                 error.message || "Failed to moderate member. Please try again.";
         }
     }
+
+    async function handleLeaveGroup(event) {
+        event.preventDefault();
+
+        try {
+            await apiRequest(`/groups/${groupId}/leave`, "DELETE");
+            navigate("user"); // Redirect to user dashboard after leaving
+        } catch (error) {
+            console.error("Error leaving group:", error);
+            if (error.message === REFRESH_ERROR_MESSAGE) {
+                navigate("login");
+                return;
+            }
+            leaveGroupError =
+                error.message || "Failed to leave group. Please try again.";
+        } finally {
+            isLeaving = false; // Reset leaving state
+        }
+    }
+
+    async function handlePromoteMember(event) {
+        event.preventDefault();
+
+        if (!targetMember) {
+            promoteMemberError = "No member selected for promotion.";
+            return;
+        }
+
+        isPromoting = true;
+        promoteMemberError = "";
+
+        try {
+            const reqData = {
+                role: "admin",
+            };
+
+            await apiRequest(
+                `/groups/${groupId}/members/${targetMember.user_id}/promote`,
+                "PUT",
+                reqData,
+            );
+
+            closePromoteMemberModal();
+            await fetchMembers(); // Refresh members list after promotion
+            openMembersModal(); // Reopen members modal to show updated list
+        } catch (error) {
+            console.error("Error promoting member:", error);
+            if (error.message === REFRESH_ERROR_MESSAGE) {
+                navigate("login");
+                return;
+            }
+            promoteMemberError =
+                error.message || "Failed to promote member. Please try again.";
+        } finally {
+            isPromoting = false;
+        }
+    }
 </script>
 
 <div class="group-container">
@@ -368,7 +461,9 @@
                 <button class="action-button" on:click={openMembersModal}
                     >View Members</button
                 >
-                <button class="action-button">Leave Group</button>
+                <button class="action-button" on:click={openLeaveModal}
+                    >Leave Group</button
+                >
             </div>
         </section>
 
@@ -489,6 +584,7 @@
         {isAdmin}
         on:close={closeMembersModal}
         on:remove={showModerateMember}
+        on:promote={showPromoteMember}
     />
 {/if}
 
@@ -564,4 +660,37 @@
             </div>
         </div>
     </div>
+{/if}
+
+{#if showPromoteMemberModal}
+    <div class="modal-overlay" role="dialog" aria-modal="true" tabindex="-1">
+        <!-- svelte-ignore a11y_click_events_have_key_events -->
+        <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
+        <div
+            class="modal-content text-center h-50 w-50"
+            on:click|stopPropagation
+            role="document"
+        >
+            <h2>Promote Member</h2>
+            <p>Are you sure you want to promote this member to admin?</p>
+            <div class="modal-actions">
+                <button on:click={closePromoteMemberModal}>Cancel</button>
+                <button on:click={handlePromoteMember} disabled={isPromoting}>
+                    {isPromoting ? "Promoting..." : "Confirm Promotion"}
+                </button>
+            </div>
+            {#if promoteMemberError}
+                <p class="error">{promoteMemberError}</p>
+            {/if}
+        </div>
+    </div>
+{/if}
+
+{#if showLeaveModal}
+    <LeaveGroupModal
+        {isLeaving}
+        error={leaveGroupError}
+        on:close={closeLeaveModal}
+        on:submit={handleLeaveGroup}
+    />
 {/if}

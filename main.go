@@ -59,7 +59,7 @@ func main() {
 
 	// User Functions Handlers
 	router.HandleFunc("/api/groups/invite/{invite_code}/join", cfg.JoinGroupHandler).Methods("POST")
-	router.HandleFunc("/api/groups/{group_id}/join", cfg.LeaveGroupHandler).Methods("DELETE")
+	router.HandleFunc("/api/groups/{group_id}/leave", cfg.LeaveGroupHandler).Methods("DELETE")
 	router.HandleFunc("/api/groups", cfg.GetGroupsForFeed).Methods("GET")
 
 	// Group Handlers
