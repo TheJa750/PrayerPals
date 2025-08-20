@@ -52,7 +52,9 @@ A simple web app for creating groups to share prayer requests.
   - [ ] Admin controls for owners
     - [x] Delete posts
     - [ ] Delete group
-    - [ ] Moderate members
+    - [x] Moderate members
+    - [x] Promote members
+    - [x] Update group rules/announcements/info
   - [x] Display server/API error messages and loading states
   - [x] Add styles for basic usability and mobile-responsiveness
 - [ ] **Security & Production Readiness**
@@ -64,19 +66,17 @@ A simple web app for creating groups to share prayer requests.
     - [ ] Add account lockout after failed login attempts
 - [ ] **User Experience Enhancements**
   - [ ] Enhanced UI/UX
-    - [ ] Add email/password requirements to signup page
+    - [x] Add email/password requirements to signup page
     - [ ] Add "forgot password" functionality
-    - [ ] Add user profile pages
     - [ ] Add notification system
-    - [ ] Add search functionality (groups, posts, users)
+    - [ ] Add search functionality (groups, posts, users) - Maybe? Unsure if this is useful vs keeping the groups more private by default
     - [ ] Add pagination for posts/comments feeds
 - [ ] **Community Features**
   - [ ] Community building
-    - [ ] Add ability to @mention users in posts/comments
     - [ ] Add post catgories/tags (prayer requests, praise reports)
     - [ ] Add ability to mark prayer requests as answered
     - [x] Add group announcements (pinned posts)
-    - [ ] Add member directory for groups
+    - [x] Add member directory for groups
 - [ ] **Technical Improvements**
   - [ ] Performance & reliability
     - [ ] Add database connection pooling
