@@ -187,6 +187,21 @@ func (q *Queries) GetPostByID(ctx context.Context, id uuid.UUID) (GetPostByIDRow
 	return i, err
 }
 
+const getPostCountByGroupID = `-- name: GetPostCountByGroupID :one
+SELECT COUNT(*) AS post_count
+FROM posts
+WHERE group_id = $1
+AND parent_post_id IS NULL
+AND is_deleted = FALSE
+`
+
+func (q *Queries) GetPostCountByGroupID(ctx context.Context, groupID uuid.UUID) (int64, error) {
+	row := q.db.QueryRowContext(ctx, getPostCountByGroupID, groupID)
+	var post_count int64
+	err := row.Scan(&post_count)
+	return post_count, err
+}
+
 const getPostsByGroupID = `-- name: GetPostsByGroupID :many
 SELECT id, user_id, group_id, content, created_at, updated_at, parent_post_id, is_deleted FROM posts
 WHERE group_id = $1

@@ -86,3 +86,10 @@ LEFT JOIN users ON posts.user_id = users.id
 WHERE posts.parent_post_id = $1
 AND posts.is_deleted = FALSE
 ORDER BY posts.created_at DESC;
+
+-- name: GetPostCountByGroupID :one
+SELECT COUNT(*) AS post_count
+FROM posts
+WHERE group_id = $1
+AND parent_post_id IS NULL
+AND is_deleted = FALSE;
