@@ -24,6 +24,12 @@
     let userId = localStorage.getItem("userId");
     let rules = null;
 
+    // Pagination data
+    let currentPage = 1;
+    let postsPerPage = 10; // Adjust as needed
+    let postCount = 0; // Total number of posts, to be fetched from the backend
+    let lastPage = 0;
+
     // Create post modal data
     let newPostContent = "";
     let isCreatingPost = false;
@@ -99,7 +105,16 @@
     async function loadGroupPosts() {
         try {
             isLoadingPosts = true;
-            const posts = await apiRequest(`/groups/${groupId}/posts`, "GET");
+            loadPostError = "";
+
+            await loadPostCount();
+
+            // Calculate offset for pagination
+            const offset = (currentPage - 1) * postsPerPage;
+            const url = `/groups/${groupId}/posts?offset=${offset}&limit=${postsPerPage}`;
+
+            // Make the request to fetch posts
+            const posts = await apiRequest(url, "GET");
             groupPosts = posts || [];
         } catch (error) {
             console.error("Error loading group posts:", error);
@@ -113,6 +128,27 @@
                 "Failed to load prayer requests. Please try again later.";
         } finally {
             isLoadingPosts = false;
+        }
+    }
+
+    async function loadPostCount() {
+        try {
+            const countData = await apiRequest(
+                `/groups/${groupId}/posts/count`,
+                "GET",
+            );
+            postCount = countData.post_count || 0;
+            lastPage = Math.ceil(postCount / postsPerPage);
+        } catch (error) {
+            console.error("Error loading post count:", error);
+
+            if (error.message === REFRESH_ERROR_MESSAGE) {
+                navigate("login");
+                return;
+            }
+
+            console.warn("Failed to load post count, defaulting to 0");
+            postCount = 0; // Default to 0 if there's an error
         }
     }
 
@@ -422,6 +458,22 @@
             isPromoting = false;
         }
     }
+
+    async function pageForward() {
+        if (postCount <= currentPage * postsPerPage) {
+            return; // No more posts to load
+        }
+        currentPage++;
+        await loadGroupPosts();
+    }
+
+    async function pageBackward() {
+        if (currentPage <= 1) {
+            return; // Already on the first page
+        }
+        currentPage--;
+        await loadGroupPosts();
+    }
 </script>
 
 <div class="group-container">
@@ -512,6 +564,25 @@
                         </div>
                     </div>
                 {/each}
+                {#if lastPage > 1}
+                    <div class="pagination">
+                        <button
+                            on:click={pageBackward}
+                            disabled={currentPage === 1}
+                            hidden={currentPage === 1}
+                        >
+                            &larr; Previous
+                        </button>
+                        <span>Page {currentPage} of {lastPage}</span>
+                        <button
+                            on:click={pageForward}
+                            disabled={currentPage === lastPage}
+                            hidden={currentPage === lastPage}
+                        >
+                            Next &rarr;
+                        </button>
+                    </div>
+                {/if}
             {/if}
         </section>
 
