@@ -130,6 +130,10 @@ type UpdateGroupDescriptionRequest struct {
 	Description string `json:"description"` // New description for the group
 }
 
+type PostCountResponse struct {
+	PostCount int `json:"post_count"` // Total number of posts in the group
+}
+
 func ParseJSON[T any](r *http.Request) (T, error) {
 	var data T
 

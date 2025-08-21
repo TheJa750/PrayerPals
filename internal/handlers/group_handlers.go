@@ -165,6 +165,43 @@ func (a *APIConfig) GetPostFeedHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func (a *APIConfig) GetPostCountHandler(w http.ResponseWriter, r *http.Request) {
+	// Validate JWT and extract user ID
+	userID, err := a.getUserIDFromToken(r)
+	if err != nil {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	// Parse the group ID from the URL path
+	groupID, err := parseUUIDPathParam(r, "group_id")
+	if err != nil {
+		http.Error(w, "Invalid group ID", http.StatusBadRequest)
+		return
+	}
+
+	// Get the post count for the group
+	count, err := a.getGroupPostCount(r.Context(), userID, groupID)
+	if err != nil {
+		if errors.Is(err, ErrUserNotMember) {
+			http.Error(w, "User is not a member of the group", http.StatusForbidden)
+			return
+		}
+		http.Error(w, "Failed to get post count", http.StatusInternalServerError)
+		return
+	}
+
+	// Create JSON response
+	response := PostCountResponse{
+		PostCount: count,
+	}
+	if err := CreateJSONResponse(response, w, http.StatusOK); err != nil {
+		log.Printf("Error creating JSON response: %v", err)
+		return
+	}
+	log.Printf("Post count retrieved successfully for group %v by user %v", groupID, userID)
+}
+
 func (a *APIConfig) DeleteGroupHandler(w http.ResponseWriter, r *http.Request) {
 	// Validate JWT and extract user ID
 	userID, err := a.getUserIDFromToken(r)

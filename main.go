@@ -67,6 +67,7 @@ func main() {
 	router.HandleFunc("/api/groups/{group_id}", cfg.GetGroupInfoHandler).Methods("GET")                          // Expecting group_id in URL
 	router.HandleFunc("/api/groups/{group_id}/members/{user_id}/promote", cfg.PromoteUserHandler).Methods("PUT") // Expecting JSON body for new role
 	router.HandleFunc("/api/groups/{group_id}/posts", cfg.GetPostFeedHandler).Methods("GET")                     // Expecting query parameters ?limit=10&offset=0
+	router.HandleFunc("/api/groups/{group_id}/posts/count", cfg.GetPostCountHandler).Methods("GET")              // Expecting group_id in URL
 	router.HandleFunc("/api/groups/{group_id}", cfg.DeleteGroupHandler).Methods("DELETE")
 	router.HandleFunc("/api/groups/{group_id}/members/{user_id}/moderate", cfg.ModerateUserHandler).Methods("PUT") // Expecting JSON body for action and reason
 	router.HandleFunc("/api/groups/invite/{invite_code}", cfg.GroupFromInviteCodeHandler).Methods("GET")

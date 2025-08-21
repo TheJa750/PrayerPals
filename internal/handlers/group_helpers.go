@@ -431,3 +431,22 @@ func (a *APIConfig) changeGroupRules(ctx context.Context, userID, groupID uuid.U
 
 	return nil
 }
+
+func (a *APIConfig) getGroupPostCount(ctx context.Context, userID, groupID uuid.UUID) (int, error) {
+	// Verify if the user is a member of the group
+	isMember, err := a.verifyUserInGroup(ctx, userID, groupID)
+	if err != nil {
+		return 0, err
+	}
+	if !isMember {
+		return 0, ErrUserNotMember
+	}
+
+	// Fetch the count of parent posts in the group
+	count, err := a.DBQueries.GetPostCountByGroupID(ctx, groupID)
+	if err != nil {
+		return 0, fmt.Errorf("error retrieving post count for group: %w", err)
+	}
+
+	return int(count), nil
+}
