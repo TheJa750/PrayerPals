@@ -105,32 +105,34 @@ func (a *APIConfig) joinGroup(ctx context.Context, userID uuid.UUID, role, invit
 		return UserJoinGroup{}, fmt.Errorf("joinGroup: error verifying user in group: %w", err)
 	}
 
-	// Check if the user is banned or kicked from the group
-	modStatus, err := a.DBQueries.GetKickBanStatus(ctx, database.GetKickBanStatusParams{
-		UserID:  userID,
-		GroupID: group.ID,
-	})
-	if err != nil {
-		return UserJoinGroup{}, fmt.Errorf("joinGroup: error checking kick/ban status: %w", err)
-	}
+	if isMember {
+		// Check if the user is banned or kicked from the group
+		modStatus, err := a.DBQueries.GetKickBanStatus(ctx, database.GetKickBanStatusParams{
+			UserID:  userID,
+			GroupID: group.ID,
+		})
+		if err != nil {
+			return UserJoinGroup{}, fmt.Errorf("joinGroup: error checking kick/ban status: %w", err)
+		}
 
-	if modStatus.IsBanned {
-		return UserJoinGroup{}, fmt.Errorf("joinGroup: user is banned from the group")
-	}
+		if modStatus.IsBanned {
+			return UserJoinGroup{}, fmt.Errorf("joinGroup: user is banned from the group")
+		}
 
-	if modStatus.IsKicked {
-		if modStatus.KickedUntil.Time.After(time.Now()) { // Kick is still active
-			return UserJoinGroup{}, fmt.Errorf("joinGroup: user is kicked from the group until %v", modStatus.KickedUntil.Time)
-		} else { // Kick has expired, reset kick status
-			err = a.DBQueries.ResetKickStatus(ctx, database.ResetKickStatusParams{
-				UserID:  userID,
-				GroupID: group.ID,
-			})
-			if err != nil {
-				return UserJoinGroup{}, fmt.Errorf("joinGroup: error resetting kick status: %w", err)
+		if modStatus.IsKicked {
+			if modStatus.KickedUntil.Time.After(time.Now()) { // Kick is still active
+				return UserJoinGroup{}, fmt.Errorf("joinGroup: user is kicked from the group until %v", modStatus.KickedUntil.Time)
+			} else { // Kick has expired, reset kick status
+				err = a.DBQueries.ResetKickStatus(ctx, database.ResetKickStatusParams{
+					UserID:  userID,
+					GroupID: group.ID,
+				})
+				if err != nil {
+					return UserJoinGroup{}, fmt.Errorf("joinGroup: error resetting kick status: %w", err)
+				}
 			}
 		}
-	} else if isMember {
+
 		return UserJoinGroup{}, ErrUserIsMember
 	}
 

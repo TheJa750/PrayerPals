@@ -70,7 +70,7 @@ A simple web app for creating groups to share prayer requests.
     - [ ] Add "forgot password" functionality
     - [ ] Add notification system
     - [ ] Add search functionality (groups, posts, users) - Maybe? Unsure if this is useful vs keeping the groups more private by default
-    - [ ] Add pagination for posts/comments feeds
+    - [x] Add pagination for posts/comments feeds
 - [ ] **Community Features**
   - [ ] Community building
     - [ ] Add post catgories/tags (prayer requests, praise reports)
