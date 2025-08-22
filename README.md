@@ -19,14 +19,25 @@ Prayer Pals is a web application designed for church groups and faith communitie
 
 ## Screenshots
 
-<!--
-Add screenshots or GIFs here. Suggestions:
-- User dashboard showing multiple groups
-- Prayer request feed inside a group
-- Modal for creating or joining a group
-- Group member management/admin actions
-- Mobile/responsive view
--->
+### User Dashboard
+
+![User dashboard showing groups and relevant buttons](docs/dashboard.png)
+
+### Group Page
+
+![Group page showing prayer request feed](docs/group-feed.png)
+
+### Group Members Modal
+
+![Group members modal showing admin view with moderation/promotion buttons](docs/members-modal.png)
+
+### Post Page
+
+![Post view with comments and comment form](docs/post-with-comments.png)
+
+### Dark Mode
+
+![User dashboard in dark mode](docs/dark-mode.png)
 
 ---
 
