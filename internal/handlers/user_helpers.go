@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"log"
 	"net/http"
 	"strings"
 	"time"
@@ -17,8 +16,9 @@ import (
 )
 
 var (
-	ErrNoGroupFound = errors.New("no group found for the provided invite code")
-	ErrUserIsMember = errors.New("user is already a member of the group")
+	ErrNoGroupFound       = errors.New("no group found for the provided invite code")
+	ErrUserIsMember       = errors.New("user is already a member of the group")
+	ErrUserKickedOrBanned = errors.New("user is kicked or banned from the group")
 )
 
 func (a *APIConfig) issueTokens(user database.User, jwtSecret string, activeTime time.Duration, ctx context.Context) (string, string, error) {
@@ -68,6 +68,18 @@ func (a *APIConfig) verifyUserInGroup(ctx context.Context, userID, groupID uuid.
 
 	for _, memberID := range members {
 		if memberID == userID {
+			// Check if the user is banned or kicked from the group
+			modStatus, err := a.DBQueries.GetKickBanStatus(ctx, database.GetKickBanStatusParams{
+				UserID:  userID,
+				GroupID: groupID,
+			})
+			if err != nil {
+				return false, fmt.Errorf("verifyUserInGroup: error checking kick/ban status: %w", err)
+			}
+			if modStatus.IsBanned || modStatus.IsKicked {
+				return false, ErrUserKickedOrBanned
+			}
+
 			return true, nil
 		}
 	}
@@ -99,10 +111,17 @@ func (a *APIConfig) joinGroup(ctx context.Context, userID uuid.UUID, role, invit
 	}
 
 	// Verify user is not already a member (checked with kick/ban status below)
-	isMember, err := a.verifyUserInGroup(ctx, userID, group.ID)
+	isMember := false
+	members, err := a.DBQueries.GetGroupMembersIDs(ctx, group.ID)
 	if err != nil {
-		log.Printf("Error verifying user in group: %v", err)
-		return UserJoinGroup{}, fmt.Errorf("joinGroup: error verifying user in group: %w", err)
+		return UserJoinGroup{}, fmt.Errorf("verifyUserInGroup: error retrieving group members: %w", err)
+	}
+
+	for _, memberID := range members {
+		if memberID == userID {
+			isMember = true
+			break
+		}
 	}
 
 	if isMember {
