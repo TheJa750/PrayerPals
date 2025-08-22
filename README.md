@@ -44,10 +44,10 @@ Prayer Pals is a web application designed for church groups and faith communitie
 ## Features
 
 - User authentication with registration and secure JWT/session management
-- Create, join, and manage private groups using unique invitation codes
+- Create, join, and manage private groups using unique, semi-customizable invitation codes
 - Post new prayer requests for group members to see and discuss
 - Comment on requests with updates, encouragement, or prayers
-- Simple, mobile-friendly design using Svelte and Vite
+- Simple UI design using Svelte and Vite
 - Group admin tools (kick/ban/promote, change invite code, manage group rules)
 - Markdown support for group rules/info
 - Modern Go backend (Gorilla Mux, PostgreSQL, SQLC) for reliability and security
@@ -154,15 +154,18 @@ Please open an issue.
 **To Do:**
 
 - Add deployment instructions and .env.example
-- Add screenshots/demo images above
-- Document open TODOs or future security improvements
+- Security improvements (before production-ready version, see [below](#security-considerations))
+- Advanced features
+  - Invite group members via email
+  - Notification system for updates to flagged groups
+  - Reaction system (emojis)
+  - Custom roles/more role options
 
 ---
 
 ## Security Considerations
 
-This section outlines the key security features currently implemented in Prayer Pals as well as known limitations/future improvements.  
-While great care has been taken to protect user data and privacy, this project is still under active development and may not yet meet all best practices required for public deployment.
+This section outlines the key security features currently implemented in Prayer Pals as well as known limitations/future improvements. While great care has been taken to protect user data and privacy, this project is still under active development and may not yet meet all best practices required for public deployment.
 
 **Implemented:**
 
