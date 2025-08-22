@@ -62,31 +62,62 @@
         {:else if members.length === 0}
             <p>No members in this group.</p>
         {:else}
-            <ul class="member-list">
-                {#each members as member}
-                    {#if member.role !== "member"}
-                        <li>{member.username} - ★ {member.role}</li>
-                    {:else if isAdmin}
-                        <li>
-                            {member.username}
-                            <button
-                                class="close-button"
-                                on:click={() => dispatch("remove", member)}
-                            >
-                                &times;
-                            </button>
-                            <button
-                                class="promote-button"
-                                on:click={() => dispatch("promote", member)}
-                            >
-                                ★
-                            </button>
-                        </li>
-                    {:else}
-                        <li>{member.username}</li>
-                    {/if}
-                {/each}
-            </ul>
+            <div class="member-list-container">
+                <ul class="member-list">
+                    {#each members as member}
+                        {#if member.role !== "member"}
+                            <li>
+                                <div class="member-list-username">
+                                    <span class="face-icon">🧑</span>
+                                    <span
+                                        >{member.username} - ★ {member.role}</span
+                                    >
+                                </div>
+                            </li>
+                        {:else if isAdmin}
+                            <li class="admin-member-view">
+                                <div class="member-list-username">
+                                    <span class="face-icon">🧑</span>
+                                    <span>{member.username}</span>
+                                </div>
+                                <div>
+                                    <div class="tooltip-container">
+                                        <button
+                                            class="close-button"
+                                            on:click={() =>
+                                                dispatch("remove", member)}
+                                        >
+                                            &times;
+                                        </button>
+                                        <span class="tooltip-text">
+                                            Moderate User
+                                        </span>
+                                    </div>
+                                    <div class="tooltip-container">
+                                        <button
+                                            class="promote-button"
+                                            on:click={() =>
+                                                dispatch("promote", member)}
+                                        >
+                                            ★
+                                        </button>
+                                        <span class="tooltip-text">
+                                            Promote member
+                                        </span>
+                                    </div>
+                                </div>
+                            </li>
+                        {:else}
+                            <li>
+                                <div class="member-list-username">
+                                    <span class="face-icon">🧑</span>
+                                    <span>{member.username}</span>
+                                </div>
+                            </li>
+                        {/if}
+                    {/each}
+                </ul>
+            </div>
         {/if}
     </div>
 </div>

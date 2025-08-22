@@ -717,21 +717,31 @@ label:hover {
   cursor: not-allowed;
 }
 
+.member-list-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 1rem;
+  width: 100%;
+  max-height: 100%;
+  overflow-y: auto;
+}
+
 .member-list {
   list-style: none;
   padding: 0;
-  margin: 1em 0;
-  max-height: 250px;
-  overflow-y: auto;
+  margin: 1em 8px;
+  max-width: 600px;
+  width: 100%;
   border-radius: 8px;
   background: var(--background-section);
   box-shadow: 0 2px 8px rgba(76, 124, 89, 0.06);
   /* subtle green shadow */
   border: 1px solid var(--border-light);
+  align-self: center;
 }
 
 .member-list li {
-  padding: 0.75em 1em;
+  padding: 0 1em;
   border-bottom: 1px solid var(--border-separator);
   font-size: 1.05em;
   color: var(--text-primary);
@@ -740,22 +750,63 @@ label:hover {
   gap: 0.5em;
   background: var(--background-white);
   transition: background 0.2s;
+  height: 75px;
 }
 
 .member-list li:last-child {
   border-bottom: none;
 }
 
-.member-list li::before {
-  content: "🧑";
+.face-icon {
   font-size: 1em;
   margin-right: 0.5em;
-  opacity: 0.7;
+  opacity: 0.8;
   color: var(--primary-green);
+}
+
+.member-list-username {
+  display: flex;
+  align-items: center;
+  gap: 0.3em;
 }
 
 .member-list li:hover {
   background: var(--background-hover);
+}
+
+.admin-member-view {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.tooltip-container {
+  position: relative;
+  display: inline-block;
+}
+
+.tooltip-text {
+  visibility: hidden;
+  background: #333;
+  color: #fff;
+  text-align: center;
+  border-radius: 4px;
+  padding: 0.3em 0.7em;
+  position: absolute;
+  z-index: 1;
+  bottom: 125%;
+  /* Position above the button */
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  font-size: 1em;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.tooltip-container:hover .tooltip-text {
+  visibility: visible;
+  opacity: 1;
 }
 
 .invite-code {
