@@ -13,6 +13,7 @@ Prayer Pals is a web application designed for church groups and faith communitie
 5. [API Overview](#api-overview)
 6. [License](#license)
 7. [Contact](#contact)
+8. [Security Considerations](#security-considerations)
 
 ---
 
@@ -146,3 +147,25 @@ Please open an issue.
 - Document open TODOs or future security improvements
 
 ---
+
+## Security Considerations
+
+This section outlines the key security features currently implemented in Prayer Pals as well as known limitations/future improvements.  
+While great care has been taken to protect user data and privacy, this project is still under active development and may not yet meet all best practices required for public deployment.
+
+**Implemented:**
+
+- Passwords are securely hashed with bcrypt
+- JWT-based authentication, stored as HttpOnly cookies
+- Server-side input validation on user input and forms
+
+**Planned / Not Yet Implemented:**
+
+- Enforce HTTPS and `Secure`/`SameSite` cookie flags in production
+- Frontend and backend CSRF and XSS protections
+- Rate limiting and abuse-prevention measures
+- Fine-grained logging/auditing of moderation actions
+- Improved error handling/user feedback for sensitive operations
+- Password recovery method
+- Automated security audits for dependencies
+- Email verification during signup
